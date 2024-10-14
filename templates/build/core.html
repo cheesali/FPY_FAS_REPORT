@@ -1,0 +1,43 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="ru" data-theme="light">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <script src="{% static 'libs/tailwindcss.js' %}"></script>
+  {% comment %} <script src="{% static 'libs/flowbite.min.js' %}"></script> {% endcomment %}
+  {% comment %} <link href="{% static 'css/daisyUI.css' %}" rel="stylesheet" type="text/css" /> {% endcomment %}
+  <link rel="shortcut icon" href="{%  static 'favicon.ico' %}">
+
+  {% for tw_style in tailwind_styles %}
+  {% include tw_style %}
+  {% endfor %}
+
+  {% for style in styles %}
+  <link href="{% static style %}" rel="stylesheet" type="text/css" />
+  {% endfor %}
+
+  <title>Отчет по станциям FPY</title>
+</head>
+
+<!-- <body class="w-full h-screen max-h-screen min-h-screen overflow-hidden"> -->
+  <body class="w-full h-screen">
+  <div class="flex flex-row h-full">
+    {% comment %} <div> {% endcomment %}
+    <div class="w-full bg-white min-h-screen h-screen  overflow-hidden "> 
+    <div class="w-full bg-white p-4">
+
+      {% include template %}
+    </div>
+
+  </div>
+</body>
+
+</html>
+
+<!-- CUSTOM SCRIPTS-->
+<script src="{% static 'js/config.js' %}"></script>
+{% for script in scripts %}
+<script src="{% static script %}"></script>
+{% endfor %}

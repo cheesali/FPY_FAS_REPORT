@@ -1,0 +1,343 @@
+<style>
+  .shift-button {
+    background-color: #4CAF50;
+    color: white;
+    padding: 10px 20px;
+    border: none;
+    cursor: pointer;
+    border-radius: 5px;
+    margin: 5px;
+  }
+
+  .shift-button:hover {
+    background-color: #45a049;
+  }
+
+  .shift-button:disabled {
+    background-color: #ccc;
+    cursor: default;
+  }
+</style>
+<div style="height: 97vh;" class="overflow-y-auto">
+  <span class="font-bold">Отчет по станциям FPY</span>
+
+  <form method="get" class="my-4">
+    <label for="start_date">c</label>
+    {% if request.GET.start_date %}
+      <input type="datetime-local" id="start_date" name="start_date" value="{{ request.GET.start_date }}" class="rounded-lg border border-gray-300 text-md font-none" />
+    {% else %}
+      <input type="datetime-local" id="start_date" name="start_date" value="{{ start_date }}" class="rounded-lg border border-gray-300 text-md font-none" />
+    {% endif %}
+
+    <label for="end_date">до</label>
+    {% if request.GET.end_date %}
+      <input type="datetime-local" id="end_date" name="end_date" value="{{ request.GET.end_date }}" class="rounded-lg border border-gray-300 text-md font-none" />
+    {% else %}
+      <input type="datetime-local" id="end_date" name="end_date" value="{{ end_date }}" class="rounded-lg border border-gray-300 text-md font-none" />
+    {% endif %}
+
+    <select id="select_customer" name="customer" class="rounded-lg border border-gray-300 text-md font-none">
+      <option value="">Выберите заказчика</option>
+      {% for customer in customers %}
+        <option value="{{ customer.CUSTOMERS_ID }}">{{ customer.CUSTOMER_NAME }}</option>
+      {% endfor %}
+    </select>
+    <select id="select_lot" name="lot" class="rounded-lg border border-gray-300 text-md font-none">
+      <option value="">Сначала выберите заказчика</option>
+    </select>
+
+    <button id="submit" type="submit" class="rounded-lg border border-gray-300 text-md font-none hover:bg-gray-100">Загрузить</button>
+    <button id="current_shift" type="button" class="rounded-lg border border-gray-300 text-md font-none hover:bg-gray-100">Текущая смена</button>
+  </form>
+
+  {% for lot in all_info %}
+    <div class="card rounded-md border-2 border-gray-300 p-0 mb-2">
+      <table class="table-auto w-full text-left">
+        <thead class="bg-gray-300">
+          <tr>
+            <th colspan="10" class="border-2 border-gray-300 py-2 ">
+              <div class="grid grid-cols-3">
+                <span class="text-lg font-normal"></span>
+                <div class="justify-start items-center text-center"> 
+                  <span class="font-bold text-lg">
+                    {{ lot.TITLE }} 
+                    <span class="text-end font-normal rounded-full bg-white border-2">
+                      {{ lot.GENERAL_FPY }}%
+                    </span>
+                    {% if lot.OBJECTIVE %}
+                    <span class="text-end font-normal rounded-full bg-white border-2">
+                      Цель {{ lot.OBJECTIVE }}%
+                      {% else %}
+                      <span>Цель: -</span>
+                      <span class="lot_lotid">LOTID: {{ lot.LOTID }}</span>
+                      {% endif %}
+                  </span>
+                                  </div>
+                <span class="ml-4 text-xs font-normal text-end">LOTID: {{ lot.LOTID }}</span>
+              </div>
+            </th>
+
+            
+          </tr>
+          <tr class="w-full">
+            <th class="fas_card_th w-[10%]">Станция</th>
+            <th class="fas_card_th w-[10%]">Линия</th>
+            <th class="fas_card_th w-[10%]">PASS</th>
+            <th class="fas_card_th w-[10%]">FAIL</th>
+            <th class="fas_card_th w-[10%]">Количество</th>
+            <th class="fas_card_th w-[15%]">Код|Ошибка|Количество</th>
+            <th class="fas_card_th w-[10%]">
+              <span class="ml-14">Дубликаты</span>
+              <div class="flex justify-between">
+                <span class="text-left">PASS</span>
+                |
+                <span class="text-right">FAIL</span>
+              </div>
+            <th class="fas_card_th w-[10%]">FPY</th>
+          </tr>
+        </thead>
+        <tbody class="divide-y divide-gray-200">
+          <!-- STEPS -->
+
+          {% for step in lot.STEPS %}
+            {% for line_info in step.LINES_INFO %}
+              <tr>
+                <!-- НАЗВАНИЕ СТАНЦИИ STEPS -->
+                <td class="fas_card_td">{{ step.STEP_NAME }}</td>
+                <!-- НАЗВАНИЕ ЛИНИИ STEPS -->
+                <td class="fas_card_td">
+                  {% if line_info.LINE_NAME %}
+                    {{ line_info.LINE_NAME }}
+                  {% else %}
+                    -
+                  {% endif %}
+                </td>
+                <!-- PASS STEPS -->
+                <td class="fas_card_td">{{ line_info.PASS }}</td>
+                <!-- FAIL STEPS -->
+                <td class="fas_card_td">{{ line_info.FAIL }}</td>
+                <!-- COUNT STEPS -->
+                <td class="fas_card_td">{{ line_info.COUNT_RESULT }}</td>
+                <!-- ОШИБКИ STEPS -->
+                <td class="p-0 border-2 border-gray-300">
+                    <table class="table-auto w-full text-left p-0">
+                      <tbody>
+                        {% for error in errors_info %}
+                          {% for error_step in error.STEPS %}
+                            {% for error_line in error_step.LINES_INFO %}
+                              {% if error.LOTID == lot.LOTID and error_step.STEP_ID == step.STEP_ID and error_line.LINE_ID == line_info.LINE_ID %}
+                                {% if error_line.COUNT_FAIL > 0 %}
+                                  <tr class="border-b-2 border-gray-300">
+                                    <td class="fas_card_td border-r-2 border-none">{{ error_line.ERROR_CODE }}</td>
+                                    <td class="fas_card_td border-r-2 border-none">{{ error_line.FAIL_DESCR }}</td>
+                                    <td class="fas_card_td border-r-2 border-none">{{ error_line.COUNT_FAIL }}</td>
+                                  </tr>
+                                {% endif %}
+                              {% endif %}
+                            {% endfor %}
+                          {% endfor %}
+                        {% endfor %}
+                      </tbody>
+                    </table>
+                </td>
+                <!-- Дубликаты STEPS -->
+                <td class="p-0 border-2 border-gray-300">
+                  <table class="table-auto w-full text-left p-0">
+                    <tbody>
+                      {% if dublicats_info %}
+                        {% for dubl in dublicats_info %}
+                          {% if dubl.LOTID == lot.LOTID and dubl.STEP_ID == step.STEP_ID and dubl.LINE_ID == line_info.LINE_ID %}
+                            {% if dubl.PASS_DUBL > 0 %}
+                              <tr class="">
+                                <td class="fas_card_td border-none">{{ dubl.PASS_DUBL }}</td>
+                                <td class="fas_card_td border-none text-right">{{ dubl.FAIL_DUBL }}</td>
+                              </tr>
+                            {% endif %}
+                          {% endif %}
+                        {% endfor %}
+                      {% else %}
+                        <tr class="">
+                          <td class="fas_card_td border-none">-</td>
+                          <td class="fas_card_td border-none text-right">-</td>
+                        </tr>
+                      {% endif %}
+                    </tbody>
+                  </table>
+
+                </td>
+                <!-- FPY STEPS -->
+                {% if step.DESCR == 'FPY' %}
+                  <td class="fas_card_td">{{ line_info.FPY }}%</td>
+                {% else %}
+                <td class="fas_card_td">-</td>
+                {% endif %}
+              </tr>
+            {% endfor %}
+          {% endfor %}
+          <!-- OTHER STEPS -->
+          {% for step in lot.OTHER_STEPS %}
+            {% for line_info in step.LINES_INFO %}
+              <tr>
+                <!-- НАЗВАНИЕ СТАНЦИИ OTHER_STEPS -->
+                <td class="fas_card_td">{{ step.STEP_NAME }}</td>
+                <!-- НАЗВАНИЕ ЛИНИИ OTHER_STEPS -->
+                <td class="fas_card_td">
+                  {% if line_info.LINE_NAME %}
+                    {{ line_info.LINE_NAME }}
+                  {% else %}
+                    -
+                  {% endif %}
+                </td>
+                <!-- PASS OTHER_STEPS -->
+                <td class="fas_card_td">{{ line_info.PASS }}</td>
+                <!-- FAIL OTHER_STEPS -->
+                <td class="fas_card_td">{{ line_info.FAIL }}</td>
+                <!-- COUNT OTHER_STEPS -->
+                <td class="fas_card_td">{{ line_info.COUNT }}</td>
+
+                <!-- ОШИБКИ OTHER_STEPS -->
+                <td class="p-0 border-2 border-gray-300">
+                  <table class="table-auto w-full text-left p-0">
+                    <tbody>
+                      {% for error in errors_info %}
+                        {% for error_step in error.STEPS %}
+                          {% for error_line in error_step.LINES_INFO %}
+                            {% if error.LOTID == lot.LOTID and error_step.STEP_ID == step.STEP_ID and error_line.LINE_ID == line_info.LINE_ID %}
+                              {% if error_line.COUNT_FAIL > 0 %}
+                                <tr class="border-b-2 border-gray-300">
+                                  <td class="fas_card_td border-r-2 border-none">{{ error_line.ERROR_CODE }}</td>
+                                  <td class="fas_card_td border-r-2 border-none">{{ error_line.FAIL_DESCR }}</td>
+                                  <td class="fas_card_td border-r-2 border-none">{{ error_line.COUNT_FAIL }}</td>
+                                </tr>
+                              {% endif %}
+                            {% endif %}
+                          {% endfor %}
+                        {% endfor %}
+                      {% endfor %}
+                    </tbody>
+                  </table>
+              </td>
+                <!-- Дубликаты OTHER_STEPS -->
+                <td class="p-0 border-2 border-gray-300">
+                  <table class="table-auto w-full text-left p-0">
+                    <tbody>
+                      {% if dublicats_info %}
+                        {% for dubl in dublicats_info %}
+                          {% if dubl.LOTID == lot.LOTID and dubl.STEP_ID == step.STEP_ID and dubl.LINE_ID == line_info.LINE_ID %}
+                            {% if dubl.PASS_DUBL > 0 %}
+                              <tr class="">
+                                <td class="fas_card_td border-none">{{ dubl.PASS_DUBL }}</td>
+                                <td class="fas_card_td border-none text-right">{{ dubl.FAIL_DUBL }}</td>
+                              </tr>
+                            {% endif %}
+                          {% endif %}
+                        {% endfor %}
+                      {% else %}
+                        <tr class="">
+                          <td class="fas_card_td border-none">-</td>
+                          <td class="fas_card_td border-none text-right">-</td>
+                        </tr>
+                      {% endif %}
+                    </tbody>
+                  </table>
+
+                </td>
+                 <!-- FPY OTHER_STEPS -->
+                {% if step.DESCR == 'FPY' %}
+                <td class="fas_card_td">{{ line_info.FPY }}%</td>
+              {% else %}
+              <td class="fas_card_td">-</td>
+                {% endif %}
+              </tr>
+            {% endfor %}
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  {% endfor %}
+</div>
+
+
+
+
+<script>
+  var LOTS = [];
+  var CUSTOMERS = [];
+
+  function drawCustomers(){
+
+    let select_customer = document.getElementById("select_customer")
+    select_customer.innerHTML = "";
+    select_customer.innerHTML += `<option value="0">Все заказчики</option>`;
+    CUSTOMERS.forEach((customer) => {
+      select_customer.innerHTML += `
+      <option value="${ customer.CUSTOMERS_ID }">${ customer.CUSTOMER_NAME }</option>
+      `
+    })
+  }
+
+  function drawLots(lots_data){
+
+    let select_lot = document.getElementById("select_lot")
+    console.log(lots_data)
+    select_lot.innerHTML = "";
+    select_lot.innerHTML += `<option value="0">Все лоты</option>`;
+    lots_data.forEach((lot) => {
+      select_lot.innerHTML += `<option value="${lot.LOTID}">${lot.FULL_LOTCODE} - ${lot.LOTID}</option>`;
+    });
+
+  }
+
+  document.addEventListener("DOMContentLoaded", async function () {
+    
+    CUSTOMERS = await fetch("/api/get/customers/").then((data) => data.json());
+    LOTS = await fetch("/api/get/lots/").then((data) => data.json());
+
+    console.log(CUSTOMERS);
+    console.log(LOTS);
+    drawCustomers();
+    document.getElementById('select_customer').addEventListener('change', () => {
+      let id_customer = document.getElementById('select_customer').value;
+      console.log(id_customer)
+      let lots_data = LOTS.filter((lot) => lot.CUSTOMERS_ID == id_customer)
+      drawLots(lots_data);
+    })
+
+  });
+
+</script>
+<script>
+  document.getElementById('current_shift').addEventListener('click', function() {
+    // Получаем текущее время
+    const now = new Date();
+    
+    // Сдвигаем время на 2 часа назад
+    now.setHours(now.getHours() + 2);
+    
+    // Определяем начало и конец текущей смены
+    let startHour, endHour;
+    if (now.getHours() < 20) {
+      startHour = 10;
+      endHour = 22;
+    } else {
+      startHour = 22;
+      endHour = 10;
+    }
+
+    // Форматируем время
+    const startDate = new Date(now.getFullYear(), now.getMonth(), now.getDate(), startHour, 0, 0);
+    const endDate = new Date(now.getFullYear(), now.getMonth(), now.getDate(), endHour, 0, 0);
+
+    // Устанавливаем значения в поля ввода
+    document.getElementById('start_date').value = startDate.toISOString().slice(0, -1);
+    document.getElementById('end_date').value = endDate.toISOString().slice(0, -1);
+
+    // Отправляем форму
+    document.getElementById('submit').click();
+
+    // Делаем кнопку недоступной
+    this.disabled = true;
+  });
+  
+</script>
+

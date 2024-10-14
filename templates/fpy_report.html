@@ -1,0 +1,443 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>FPY Dashboard</title>
+    <style></style>
+  </head>
+
+  <body>
+    <span class="font-bold">Отчет по станциям FPY</span>
+
+    <label for="start_date">c</label>
+    <input type="datetime-local" id="start_date" onchange="fetchData()" class="rounded-lg border border-gray-300 text-md" />
+
+    <label for="end_date">до</label>
+    <input type="datetime-local" id="end_date" onchange="fetchData()" class="rounded-lg border border-gray-300 text-md font-none" />
+    <div class="h-[670px] overflow-y-auto">
+      <div id="fpyContainer">
+        <span class="loader" id="loadingSpinner"></span>
+        <!-- Data will be loaded here -->
+      </div>
+    </div>
+
+    <script>
+      const loadingSpinner = document.getElementById('loadingSpinner')
+      const startDateInput = document.getElementById('start_date')
+      const endDateInput = document.getElementById('end_date')
+      const fpyContainer = document.getElementById('fpyContainer')
+      
+      // Set initial date range (yesterday 10:00 to today 22:00)
+      function setInitialDates() {
+        const now = new Date()
+        const yesterday = new Date()
+      
+        yesterday.setDate(yesterday.getDate() - 1)
+        yesterday.setHours(10, 0, 0, 0)
+        startDateInput.value = yesterday.toISOString().slice(0, 16)
+      
+        now.setHours(22, 0, 0, 0)
+        endDateInput.value = now.toISOString().slice(0, 16)
+        fetchData()
+      }
+      
+      // Function to fetch and display data
+      async function fetchData() {
+        loadingSpinner.classList.remove('hidden')
+        const startDate = document.getElementById('start_date').value
+        const endDate = document.getElementById('end_date').value
+      
+        try {
+          // Fetch FPY data
+          const fpyData = await fetch(`/api/get/contract_info/?start_date=${startDate}&end_date=${endDate}`)
+          const fpyJson = await fpyData.json()
+      
+          // Fetch errors data
+          const errorsData = await fetch(`/api/get/errors/?start_date=${startDate}&end_date=${endDate}`)
+          const errorsJson = await errorsData.json()
+      
+          const dublDatas = await fetch(`/api/get/dubls/?start_date=${startDate}&end_date=${endDate}`)
+          const dublJson = await dublDatas.json()
+      
+          fpyContainer.innerHTML = ''
+      
+          // Create the header row once for the entire page
+          const headerRow = document.createElement('tr')
+          headerRow.classList.add('header-row')
+          const lotInfoHeader = document.createElement('th')
+          lotInfoHeader.textContent = 'LOT Info'
+          lotInfoHeader.className = 'px-4 py-5 border-2 border-gray-300 bg-gray-300 h-10'
+          const stepsHeader = document.createElement('th')
+          stepsHeader.textContent = 'Станции и линии'
+          stepsHeader.className = 'px-4 py-2 border-2 border-gray-300 bg-gray-300 h-10'
+          const generalFpyHeader = document.createElement('th')
+          generalFpyHeader.textContent = 'General FPY'
+          generalFpyHeader.className = 'px-4 py-2 border-2 border-gray-300 bg-gray-300 h-10'
+          headerRow.appendChild(lotInfoHeader)
+          headerRow.appendChild(stepsHeader)
+          headerRow.appendChild(generalFpyHeader)
+      
+          let headerAdded = false // Flag to track if header is added
+      
+          // Process and display data
+          fpyJson.forEach((lot, index) => {
+            const lotDiv = document.createElement('div')
+            lotDiv.classList.add('table-container')
+      
+            // Create the main table for the lot
+            const mainTable = document.createElement('table')
+            mainTable.classList.add('main-table')
+            // Add the header row to the first table only
+            if (!headerAdded && index === 0) {
+              mainTable.appendChild(headerRow)
+              headerAdded = true
+            }
+      
+            // Create the row for LOTID, FULL_LOTCODE, and General FPY
+            const lotInfoRow = document.createElement('tr')
+            const lotInfoCell = document.createElement('td')
+            const lotInfoDiv = document.createElement('div')
+            lotInfoDiv.classList.add('lot-info', 'max-w-20', 'min-w-20')
+            const fullLotCodeDiv = document.createElement('div')
+            fullLotCodeDiv.textContent = lot.TITLE
+            fullLotCodeDiv.style.wordBreak = 'break-all'
+            const lotIdDiv = document.createElement('div')
+            lotIdDiv.textContent = lot.LOTID
+            lotIdDiv.classList.add('text-gray-500', 'text-sm', 'font-normal')
+            lotInfoDiv.appendChild(fullLotCodeDiv)
+            lotInfoDiv.appendChild(lotIdDiv)
+            lotInfoCell.appendChild(lotInfoDiv)
+            lotInfoCell.className = 'w-28'
+      
+            const stepsCell = document.createElement('td')
+            const stepsDiv = document.createElement('div')
+            stepsDiv.classList.add('steps-container')
+      
+            // Create the steps table within stepsDiv
+            const stepsTable = document.createElement('table')
+            stepsTable.classList.add('step-table')
+      
+            // Create the header row for the steps table
+            const stepsTableHeaderRow = document.createElement('tr')
+            const stepNameHeader = document.createElement('th')
+            stepNameHeader.textContent = 'Станция'
+            stepNameHeader.className = ' px-4 py-2 border-2 border-gray-300 bg-gray-200 bg-gray-200'
+      
+            const lineNameHeader = document.createElement('th')
+            lineNameHeader.textContent = 'Линия'
+            lineNameHeader.className = 'px-4 py-2 border-2 border-gray-300 bg-gray-200 bg-gray-200 '
+            const fpyHeader = document.createElement('th')
+            // fpyHeader.textContent = "FPY";
+            // fpyHeader.className = "px-4 py-2 border-2 border-gray-300 bg-gray-200 bg-gray-200";
+            const passHeader = document.createElement('th')
+            passHeader.textContent = 'PASS'
+            passHeader.className = ' px-4 py-2 border-2 border-gray-300 bg-gray-200 bg-gray-200'
+            const failHeader = document.createElement('th')
+            failHeader.textContent = 'FAIL'
+            failHeader.className = 'px-4 py-2 border-2 border-gray-300 bg-gray-200 bg-gray-200'
+            const countHeader = document.createElement('th')
+            countHeader.textContent = 'Количество'
+            countHeader.className = 'px-4 py-2 border-2 border-gray-300 bg-gray-200 bg-gray-200'
+            const errorHeader = document.createElement('th')
+            errorHeader.textContent = 'Ошибки'
+            errorHeader.className = 'px-4 py-2 border-2 border-gray-300 bg-gray-200 bg-gray-200'
+            const dublsHeader = document.createElement('th')
+            dublsHeader.textContent = 'Исключено дубликатов'
+            dublsHeader.className = 'px-4 py-2 border-2 border-gray-300 bg-gray-200 bg-gray-200'
+            const fpyHeader2 = document.createElement('th')
+            fpyHeader2.textContent = 'FPY'
+            fpyHeader2.className = 'px-4 py-2 border-2 border-gray-300 bg-gray-200 bg-gray-200'
+      
+            stepsTableHeaderRow.appendChild(stepNameHeader)
+            stepsTableHeaderRow.appendChild(lineNameHeader)
+            // stepsTableHeaderRow.appendChild(fpyHeader);
+            stepsTableHeaderRow.appendChild(passHeader)
+            stepsTableHeaderRow.appendChild(failHeader)
+            stepsTableHeaderRow.appendChild(countHeader)
+            stepsTableHeaderRow.appendChild(errorHeader)
+            stepsTableHeaderRow.appendChild(dublsHeader)
+            stepsTableHeaderRow.appendChild(fpyHeader2)
+            stepsTable.appendChild(stepsTableHeaderRow)
+      
+            // Process steps data
+            lot.STEPS.forEach((step) => {
+              // Create the step table body
+              const stepTableBody = document.createElement('tbody')
+      
+              // Process lines data for the step
+              step.LINES_INFO.forEach((line, lineIndex) => {
+                const lineRow = document.createElement('tr')
+      
+                // Если это первая линия в шаге
+                if (lineIndex === 0) {
+                  const stepNameCell = lineRow.insertCell()
+                  const stepNameSpan = document.createElement('span') // Create span for Step Name
+                  stepNameSpan.textContent = step.STEP_NAME
+                  stepNameSpan.className = 'px-2 py-1 text-black  font-bold underline ' // Apply the same class
+                  stepNameCell.appendChild(stepNameSpan) // Append span to cell
+      
+                  // rowSpan устанавливается здесь, перед добавлением второй линии
+                  stepNameCell.rowSpan = step.LINES_INFO.length
+                  lineRow.appendChild(stepNameCell)
+                }
+                const lineNameCell = lineRow.insertCell()
+                const lineNameSpan = document.createElement('span')
+                lineNameSpan.textContent = line.LINE_NAME
+                lineNameSpan.className = 'px-2 py-1 text-black  font-bold '
+                lineNameCell.appendChild(lineNameSpan)
+      
+                const passCell = lineRow.insertCell()
+                const passSpan = document.createElement('span') // Create span for PASS
+                passSpan.textContent = line.PASS
+                passSpan.className = 'px-2 py-1 text-black  font-bold '
+                passCell.appendChild(passSpan) // Append span to cell
+      
+                const failCell = lineRow.insertCell()
+                const failSpan = document.createElement('span') // Create span for FAIL
+                failSpan.textContent = line.FAIL
+                failSpan.className = 'px-2 py-1 text-black  font-bold '
+                failCell.appendChild(failSpan) // Append span to cell
+      
+                const countCell = lineRow.insertCell()
+                const countSpan = document.createElement('span') // Create span for COUNT
+                countSpan.textContent = line.COUNT
+                countSpan.className = 'px-2 py-1 text-black  font-bold '
+                countCell.appendChild(countSpan) // Append span to cell
+      
+                // Find the corresponding error in errorsJson
+                const errorLine = errorsJson.find((lotError) => lotError.LOTID === lot.LOTID && lotError.STEPS.some((stepError) => stepError.STEP_ID === step.STEP_ID && stepError.LINES_INFO.some((errorLineInfo) => errorLineInfo.LINE_ID === line.LINE_ID)))
+                const dublLine = dublJson.find((dubl) => dubl.LOTID === lot.LOTID && dubl.STEP_ID === step.STEP_ID && dubl.LINE_ID === line.LINE_ID)
+      
+                // Add error details if found
+                if (errorLine) {
+                  const errorDetails = errorLine.STEPS.find((stepError) => stepError.STEP_ID === step.STEP_ID).LINES_INFO.find((errorLineInfo) => errorLineInfo.LINE_ID === line.LINE_ID)
+      
+                  const errorCell = lineRow.insertCell() // Create a table within the errorCell
+                  const errorTable = document.createElement('table')
+                  errorTable.classList.add('w-80') // Optional: Make the table take full width
+      
+                  // Create the table header row
+                  const errorHeaderRow = errorTable.insertRow()
+                  errorHeaderRow.classList.add('w-10') // Optional: Add a background color to the header row
+                  const errorHeaderName = errorHeaderRow.insertCell()
+                  errorHeaderName.textContent = 'Ошибка'
+                  const errorHeaderCount = errorHeaderRow.insertCell()
+                  errorHeaderCount.classList.add('w-10') // Optional: Add a background color to the header row
+                  errorHeaderCount.textContent = 'Количество'
+      
+                  // Create the row for error details
+                  const errorDetailsRow = errorTable.insertRow()
+                  const errorDetailsName = errorDetailsRow.insertCell()
+                  errorDetailsName.textContent = errorDetails.FAIL_DESCR
+                  const errorDetailsCount = errorDetailsRow.insertCell()
+                  errorDetailsCount.textContent = errorDetails.COUNT_FAIL
+      
+                  // Append the table to the errorCell
+                  errorCell.appendChild(errorTable)
+                } else {
+                  const errorCell = lineRow.insertCell()
+                  errorCell.textContent = ''
+                }
+      
+                // Add dubl details if found
+                if (dublLine) {
+                  const dublsCell = lineRow.insertCell()
+      
+                  // Create a table within the dublsCell
+                  const dublsTable = document.createElement('table')
+                  dublsTable.classList.add('w-full') // Optional: Make the table take full width
+      
+                  // Create the table header row
+                  const dublsHeaderRow = dublsTable.insertRow()
+      
+                  // Create the row for PASS dubls
+                  const dublsPassRow = dublsTable.insertRow()
+                  const dublsPassName = dublsPassRow.insertCell()
+                  dublsPassName.textContent = 'PASS'
+                  const dublsPassCount = dublsPassRow.insertCell()
+                  dublsPassCount.textContent = dublLine.PASS_DUBL
+                  dublsPassCount.classList.add('font-bold', 'min-w-32', 'max-w-32') // Style the count
+      
+                  // Create the row for FAIL dubls
+                  const dublsFailRow = dublsTable.insertRow()
+                  const dublsFailName = dublsFailRow.insertCell()
+                  dublsFailName.textContent = 'FAIL'
+                  const dublsFailCount = dublsFailRow.insertCell()
+                  dublsFailCount.textContent = dublLine.FAIL_DUBL
+                  dublsFailCount.classList.add('font-bold') // Style the count
+      
+                  // Append the table to the dublsCell
+                  dublsCell.appendChild(dublsTable)
+                } else {
+                  const dublsCell = lineRow.insertCell()
+                  dublsCell.textContent = ''
+                }
+      
+                const fpyCell2 = lineRow.insertCell()
+                const fpySpan2 = document.createElement('span') // Create span for FPY
+                fpySpan2.textContent = `${line.FPY}%`
+                fpySpan2.className = 'px-2 py-1 text-black  font-bold '
+                fpyCell2.appendChild(fpySpan2) // Append span to cell
+      
+                // Append the row to the table body
+                stepTableBody.appendChild(lineRow)
+              })
+      
+              stepsTable.appendChild(stepTableBody)
+            })
+      
+            // Process steps data
+            lot.OTHER_STEPS.forEach((step) => {
+              // Create the step table body
+              const stepTableBody = document.createElement('tbody')
+      
+              // Process lines data for the step
+              step.LINES_INFO.forEach((line, lineIndex) => {
+                const lineRow = document.createElement('tr')
+      
+                // Если это первая линия в шаге
+                if (lineIndex === 0) {
+                  const stepNameCell = lineRow.insertCell()
+                  const stepNameSpan = document.createElement('span') // Create span for Step Name
+                  stepNameSpan.textContent = step.STEP_NAME
+                  stepNameSpan.className = 'px-2 py-1 text-black  font-bold underline ' // Apply the same class
+                  stepNameCell.appendChild(stepNameSpan) // Append span to cell
+      
+                  // rowSpan устанавливается здесь, перед добавлением второй линии
+                  stepNameCell.rowSpan = step.LINES_INFO.length
+                  lineRow.appendChild(stepNameCell)
+                }
+                const lineNameCell = lineRow.insertCell()
+                const lineNameSpan = document.createElement('span')
+                lineNameSpan.textContent = line.LINE_NAME
+                lineNameSpan.className = 'px-2 py-1 text-black  font-bold '
+                lineNameCell.appendChild(lineNameSpan)
+      
+                const passCell = lineRow.insertCell()
+                const passSpan = document.createElement('span') // Create span for PASS
+                passSpan.textContent = line.PASS
+                passSpan.className = 'px-2 py-1 text-black  font-bold '
+                passCell.appendChild(passSpan) // Append span to cell
+      
+                const failCell = lineRow.insertCell()
+                const failSpan = document.createElement('span') // Create span for FAIL
+                failSpan.textContent = line.FAIL
+                failSpan.className = 'px-2 py-1 text-black  font-bold '
+                failCell.appendChild(failSpan) // Append span to cell
+      
+                const countCell = lineRow.insertCell()
+                const countSpan = document.createElement('span') // Create span for COUNT
+                countSpan.textContent = line.COUNT
+                countSpan.className = 'px-2 py-1 text-black  font-bold '
+                countCell.appendChild(countSpan) // Append span to cell
+      
+                // Find the corresponding error in errorsJson
+                const errorLine = errorsJson.find((lotError) => lotError.LOTID === lot.LOTID && lotError.STEPS.some((stepError) => stepError.STEP_ID === step.STEP_ID && stepError.LINES_INFO.some((errorLineInfo) => errorLineInfo.LINE_ID === line.LINE_ID)))
+                const dublLine = dublJson.find((dubl) => dubl.LOTID === lot.LOTID && dubl.STEP_ID === step.STEP_ID && dubl.LINE_ID === line.LINE_ID)
+      
+                // Add error details if found
+                if (errorLine) {
+                  const errorDetails = errorLine.STEPS.find((stepError) => stepError.STEP_ID === step.STEP_ID).LINES_INFO.find((errorLineInfo) => errorLineInfo.LINE_ID === line.LINE_ID)
+      
+                  const errorCell = lineRow.insertCell() // Create a table within the errorCell
+                  const errorTable = document.createElement('table')
+                  errorTable.classList.add('w-80') // Optional: Make the table take full width
+      
+                  // Create the table header row
+                  const errorHeaderRow = errorTable.insertRow()
+                  errorHeaderRow.classList.add('w-10') // Optional: Add a background color to the header row
+                  const errorHeaderName = errorHeaderRow.insertCell()
+                  errorHeaderName.textContent = 'Ошибка'
+                  const errorHeaderCount = errorHeaderRow.insertCell()
+                  errorHeaderCount.classList.add('w-10') // Optional: Add a background color to the header row
+                  errorHeaderCount.textContent = 'Количество'
+      
+                  // Create the row for error details
+                  const errorDetailsRow = errorTable.insertRow()
+                  const errorDetailsName = errorDetailsRow.insertCell()
+                  errorDetailsName.textContent = errorDetails.FAIL_DESCR
+                  const errorDetailsCount = errorDetailsRow.insertCell()
+                  errorDetailsCount.textContent = errorDetails.COUNT_FAIL
+      
+                  // Append the table to the errorCell
+                  errorCell.appendChild(errorTable)
+                } else {
+                  const errorCell = lineRow.insertCell()
+                  errorCell.textContent = ''
+                  errorCell.classList.add('w-80')
+                }
+      
+                // Add dubl details if found
+                if (dublLine) {
+                  const dublsCell = lineRow.insertCell()
+      
+                  // Create a table within the dublsCell
+                  const dublsTable = document.createElement('table')
+                  dublsTable.classList.add('w-full') // Optional: Make the table take full width
+      
+                  // Create the table header row
+                  const dublsHeaderRow = dublsTable.insertRow()
+      
+                  // Create the row for PASS dubls
+                  const dublsPassRow = dublsTable.insertRow()
+                  const dublsPassName = dublsPassRow.insertCell()
+                  dublsPassName.textContent = 'PASS'
+                  const dublsPassCount = dublsPassRow.insertCell()
+                  dublsPassCount.textContent = dublLine.PASS_DUBL
+                  dublsPassCount.classList.add('font-bold', 'min-w-32', 'max-w-32') // Style the count
+      
+                  // Create the row for FAIL dubls
+                  const dublsFailRow = dublsTable.insertRow()
+                  const dublsFailName = dublsFailRow.insertCell()
+                  dublsFailName.textContent = 'FAIL'
+                  const dublsFailCount = dublsFailRow.insertCell()
+                  dublsFailCount.textContent = dublLine.FAIL_DUBL
+                  dublsFailCount.classList.add('font-bold') // Style the count
+      
+                  // Append the table to the dublsCell
+                  dublsCell.appendChild(dublsTable)
+                } else {
+                  const dublsCell = lineRow.insertCell()
+                  dublsCell.textContent = ''
+                }
+      
+                const fpyCell2 = lineRow.insertCell()
+                const fpySpan2 = document.createElement('span') // Create span for FPY
+                fpySpan2.textContent = `${line.FPY}%`
+                fpySpan2.className = 'px-2 py-1 text-black  font-bold '
+                fpyCell2.appendChild(fpySpan2) // Append span to cell
+      
+                // Append the row to the table body
+                stepTableBody.appendChild(lineRow)
+              })
+      
+              stepsTable.appendChild(stepTableBody)
+            })
+      
+            stepsDiv.appendChild(stepsTable)
+            stepsCell.appendChild(stepsDiv)
+      
+            const generalFpyCell = document.createElement('td')
+            generalFpyCell.classList.add('text-center', 'font-bold', 'w-24')
+      
+            generalFpyCell.textContent = `${lot.GENERAL_FPY}%`
+      
+            lotInfoRow.appendChild(lotInfoCell)
+            lotInfoRow.appendChild(stepsCell)
+            lotInfoRow.appendChild(generalFpyCell)
+            mainTable.appendChild(lotInfoRow)
+      
+            // Append the main table to the lot div
+            lotDiv.appendChild(mainTable)
+            fpyContainer.appendChild(lotDiv)
+          })
+        } catch (error) {
+          console.error('Error fetching data:', error)
+        }
+      }
+      window.onload = () => {
+        loadingSpinner.classList.remove('hidden')
+        setInitialDates()
+      }
+    </script>
+  </body>
+</html>

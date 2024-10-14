@@ -1,0 +1,265 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+  <title>Document</title>
+</head>
+<style>
+  th,
+  td {
+    padding: 8px;
+  }
+</style>
+
+<body>
+  <div class="flex gap-4 mb-2">
+    <span class="font-bold px-2 py-1 text-sm">Информация по станциям FPY</span>
+    <input type="datetime-local" id="start_date" class="rounded-lg border border-gray-300 text-sm" />
+    <input type="datetime-local" id="end_date" class="rounded-lg border border-gray-300 text-sm" />
+  </div>
+  <div class="h-[670px] overflow-y-auto border-gray-400 border-2 rounded-lg">
+    <table class="min-w-full overflow-scroll" id="fpyTable">
+      <thead class="sticky top-0">
+        <tr class="" id="loadingHeader">
+          <td colspan="6" class="text-center rounded-tr-lg">
+            <div class="grid grid-cols-12 gap-4 h-10 rounded-tr-lg">
+              <div class="h-10 bg-gray-300 rounded-lg animate-pulse"></div>
+              <div class="h-10 col-span-10 bg-gray-300 rounded-lg animate-pulse"></div>
+              <div class="h-10 bg-gray-300 rounded-lg animate-pulse"></div>
+            </div>
+          </td>
+        </tr>
+      </thead>
+      <tbody>
+        <tr class="h-auto whitespace-nowrap" id="loadingRow">
+          <td class="text-center">
+            <div class="grid grid-cols-12 gap-4 h-screen">
+              <div class="h-[80%] bg-gray-300 rounded-lg animate-pulse"></div>
+              <div class="h-[80%] col-span-10 bg-gray-300 rounded-lg animate-pulse"></div>
+              <div class="h-[80%] bg-gray-300 rounded-lg animate-pulse"></div>
+            </div>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <script>
+    const startDateInput = document.getElementById("start_date");
+    const endDateInput = document.getElementById("end_date");
+
+    const now = new Date();
+    const yesterday = new Date();
+
+    yesterday.setDate(yesterday.getDate() - 1);
+    yesterday.setHours(10, 0, 0, 0);
+    startDateInput.value = yesterday.toISOString().slice(0, 16);
+
+    now.setHours(22, 0, 0, 0);
+    endDateInput.value = now.toISOString().slice(0, 16);
+
+    const fpyTable = document.getElementById("fpyTable");
+    fpyTable.className = "h-screen overflow-y-auto min-w-full";
+    const loadingRow = document.getElementById("loadingRow");
+    const loadingHeader = document.getElementById("loadingHeader");
+    const tableHeader = fpyTable.querySelector("thead");
+    tableHeader.className = "sticky top-0";
+    const start_date = document.getElementById("start_date");
+    const end_date = document.getElementById("end_date");
+
+    // Функция для обновления таблицы с новыми данными
+    function updateFpyTable() {
+      const formattedStartDate = formatDate(startDateInput.value);
+      const formattedEndDate = formatDate(endDateInput.value);
+
+      document.title = `Отчет по станциям FPY c ${formattedStartDate} по ${formattedEndDate}`;
+      const selectedStartDate = start_date.value;
+      const selectedEndDate = end_date.value;
+
+      fetch(
+        `/api/get/fpy_information/?start_date=${selectedStartDate}&end_date=${selectedEndDate}`
+      )
+        .then((response) => response.json())
+        .then((data) => {
+          // Очистка таблицы
+          fpyTable.querySelector("tbody").innerHTML = "";
+          tableHeader.innerHTML = "";
+
+          // Создание заголовка таблицы
+          const headerRow = document.createElement("tr");
+          headerRow.innerHTML = `<th class="px-4 py-2 text-left border-2 border-gray-300  bg-gray-200 w-24 text-sm">LOT ID</th>
+                    <th class="px-4 py-2 text-left border-2 border-gray-300 bg-gray-200 text-sm">СТАНЦИИ</th>
+                    <th class="px-4 py-2 text-left border-2 border-gray-300 bg-gray-200 text-sm">FPY</th>`;
+          headerRow.className = "sticky top-0";
+          tableHeader.appendChild(headerRow);
+
+          // Заполнение таблицы данными
+          data.forEach((lot) => {
+            const row = fpyTable.insertRow();
+
+            const lotIdCell = row.insertCell();
+
+            const fullLotCodeLines =
+              lot.full_lot_code.match(/.{1,13}/g) || [];
+
+            lotIdCell.innerHTML = `${lot.lotid} <br>`; // Добавляем лот ID с новой строкой
+            fullLotCodeLines.forEach((line) => {
+              lotIdCell.innerHTML += `<span class="text-md text-black font-bold">${line}</span><br>`; // Добавляем каждую строку с помощью span
+            });
+
+            lotIdCell.className =
+              "border-2 border-gray-300 bg-white text-sm text-gray-500 ";
+
+            const stepsCell = row.insertCell();
+            stepsCell.className =
+              "p-0 border-2 border-gray-300 bg-white text-sm";
+
+            const fpyCell = row.insertCell();
+            fpyCell.innerHTML = lot.fpy + "%";
+            fpyCell.className =
+              "border-2 border-gray-300 bg-white text-md font-bold text-center";
+
+            const fragment = document.createDocumentFragment();
+
+            const stepsTable = document.createElement("table");
+            stepsTable.id = `${lot.lotid}`;
+            stepsTable.className = "w-full text-left p-0"; // Устанавливаем ширину и выравнивание
+
+            // Создание заголовка подтаблицы
+            if (lot.steps && lot.steps.length > 0) {
+              const stepsHeaderRow = stepsTable.insertRow();
+              stepsHeaderRow.innerHTML = `
+              <th class="px-2 py-1 border-2 border-gray-300 bg-gray-200 text-sm">Линия</th>
+              <th class=" bg-gray-200 px-2 py-1 text-sm flex items-center">
+                <span>Название</span>
+                <button id="${lot.lotid}" file_name="${lot.lotid}_${lot.full_lot_code}_FPY:${lot.fpy}%_c_${formattedStartDate}_до_${formattedEndDate}.xlsx" class=" export_Button font-none flex rounded-lg  border border-gray-400 bg-green-300 px-2 py-1 text-sm text-gray-800 hover:border-green-500 hover:bg-green-400 ml-2">
+                  <img src="{% static 'excel.svg' %}" class="h-5" />Выгрузить в Excel
+                </button>
+              </th>
+                <th class="px-2 py-1 border-2 border-gray-300 bg-gray-200 text-sm">PASS</th>
+                <th class="px-2 py-1 border-2 border-gray-300 bg-gray-200 text-sm">FAIL</th>
+                <th class="px-2 py-1 border-2 border-gray-300 bg-gray-200 text-sm">Описание ошибок</th>
+                <th class="px-2 py-1 border-2 border-gray-300 bg-gray-200 text-sm">Кол.во прохожд. станции</th>
+                <th class="px-2 py-1 border-2 border-gray-300 bg-gray-200 text-sm">FPY</th>`;
+
+              // Заполнение подтаблицы данными
+              lot.steps.forEach((step, index) => {
+
+                let stationColor = null;
+
+                // Проверяем, существуют ли массивы
+                if (lot.step_sequence && lot.stations_from_operlog_ids) {
+                  if (lot.step_sequence.indexOf(step.id) !== -1) {
+                    stationColor = 'bg-yellow-200';
+                  } else if (lot.stations_from_operlog_ids.indexOf(step.id) !== -1) {
+                    stationColor = 'bg-blue-200';
+                  }
+                } else {
+                  console.warn("Массивы step_sequence или stations_from_operlog_ids не найдены!");
+                }
+
+                // Подсвечиваем ВСЮ строку цветом
+                if (stationColor) {
+                  stepRow.classList.add(stationColor);
+                }
+                //Строка со степами
+                const stepRow = stepsTable.insertRow();
+                stepRow.className = "p-0";
+
+                const stepLineIdCell = stepRow.insertCell();
+                const lineIdTextNode = document.createTextNode(step.line_name || '-');
+                stepLineIdCell.appendChild(lineIdTextNode);
+                stepLineIdCell.className = "p-0 font-bold px-2 py-1 border-2 border-gray-300 bg-white text-sm min-w-5 max-w-5";
+
+
+
+                //Название станции
+                const stepNameCell = stepRow.insertCell();
+                stepNameCell.textContent = step.name;
+                stepNameCell.className =
+                  "p-0 font-bold underline px-2 py-1 border-2 border-gray-300 bg-white text-sm min-w-5 max-w-5";
+
+                //PASS
+                const stepPassCell = stepRow.insertCell();
+                stepPassCell.textContent = `${step.pass}`;
+                stepPassCell.className =
+                  "p-0 px-2 py-1 border-2 border-gray-300 bg-white text-sm min-w-5 max-w-5";
+
+                //FAIL
+                const stepFailCell = stepRow.insertCell();
+                stepFailCell.textContent = `${step.fail}`;
+                stepFailCell.className =
+                  "p-0 px-2 py-1 border-2 border-gray-300 bg-white text-sm min-w-5 max-w-5";
+
+                // Добавляем ячейку для описания ошибок
+                const stepErrorDescriptionCell = stepRow.insertCell();
+                stepErrorDescriptionCell.className =
+                  "p-0  px-2 py-1 border-2 border-gray-300 bg-white text-sm min-w-10 max-w-10";
+
+                // Проверяем, есть ли описание ошибок для текущего шага
+                step.error_description.forEach((element) => {
+                  stepErrorDescriptionCell.innerHTML += `<div class="p-0 py-1 bg-white text-sm min-w-40 max-w-40">${element.FailDescription}: ${element.FailCount}</div>`;
+                });
+
+                // const quantityCell = stepRow.insertCell();
+                // quantityCell.innerHTML = `Общее кол.во: ${step.count}<br>
+                // Исключено дубликатов: ${step.dublicates.total}<br>
+                // PASS Дубликаты: ${step.dublicates.pass}<br>
+                // FAIL Дубликаты: ${step.dublicates.fail}`;
+                // quantityCell.className =
+                //   "p-0 px-2 py-1 border-2 border-gray-300 bg-white text-sm min-w-5 max-w-5";
+
+                //Количество дубликатов
+
+                //FPY
+                const stepFpyCell = stepRow.insertCell();
+                if (step.description != "FPY") {
+                  // Не учитываем FPY для lotid 20573, если стоит флаг FPY в Description
+                  stepFpyCell.textContent = "-";
+                } else {
+                  stepFpyCell.textContent = `${step.fpy}%`;
+                }
+                stepFpyCell.className =
+                  "p-0 font-bold  px-2 py-1 border-2 border-gray-300 bg-white text-sm min-w-5 max-w-5";
+              });
+            }
+            stepsCell.appendChild(stepsTable); // Добавляем подтаблицу в ячейку шагов
+          });
+
+          const exportButton = document.querySelector(".export_Button");
+          for (const button of document.querySelectorAll(".export_Button")) {
+            button.addEventListener("click", () => {
+              const filename = button.getAttribute("file_name"); // Получаем имя файла из атрибута
+              const wb = XLSX.utils.book_new(); // Создаем новую книгу Excel
+
+              const ws = XLSX.utils.table_to_sheet(
+                document.getElementById(button.id)
+              ); // Преобразуем таблицу HTML в лист Excel
+
+              XLSX.utils.book_append_sheet(wb, ws, "FPY Information"); // Добавляем лист в книгу
+              XLSX.writeFile(wb, filename); // Сохраняем книгу в файл Excel
+            });
+          }
+        });
+    }
+
+    start_date.addEventListener("change", updateFpyTable);
+    end_date.addEventListener("change", updateFpyTable);
+
+    updateFpyTable();
+
+    function formatDate(dateString) {
+      const date = new Date(dateString);
+      const day = String(date.getDate()).padStart(2, "0");
+      const month = String(date.getMonth() + 1).padStart(2, "0");
+      const year = date.getFullYear();
+      return `${day}.${month}.${year}`;
+    }
+  </script>
+</body>
+
+</html>

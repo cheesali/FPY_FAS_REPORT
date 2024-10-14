@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Prod Report Yadro/KNS-{{ current_date }}</title>
+    <style>
+        .main-screen {
+            overflow-y: auto;
+        }
+        .container {
+            max-width: auto;
+            margin: 0 auto;
+        }
+
+        h1 {
+            text-align: left;
+            font-weight: 700; 
+            font-size: 1.2em;
+        }
+
+        .table_main {
+            width: 100%;
+            border-collapse: collapse;
+            border-width: 2px;
+            border: 2px solid #bcbcbc;
+        }
+
+        .th_main, .td_main {
+            text-align: center;
+            border-bottom: 2px solid #ddd;
+            border-width: 2px;
+            border: 2px solid #dbdbdb;
+            border-collapse: collapse;
+        }
+
+        .th_main {
+            background-color: #dbdbdb;
+            font-weight: bold;
+            border-width: 2px;
+            border: 2px solid #bcbcbc;
+            text-align: center;
+
+        }
+        .th_1 {
+            background-color: #bcbcbc;
+            font-weight: bold;
+            border: 2px solid #bcbcbc;
+            text-align: center;
+            border-bottom: none;
+            border-collapse: collapse;
+            border-width: 2px;
+            border: 2px solid #bcbcbc;
+
+        }
+        p {
+            font-weight: 700; 
+            font-size: 1.2em;
+        }
+        .table_first {
+            width: 100%;
+        }
+    </style>
+</head>
+<body>
+<div class="main-screen" style="height: 97vh;">
+    <p>Дата и время формирования отчета: {{ current_date }}</p>
+    <h1>Отчет по производству YADRO/KNS</h1>
+    <div class="container">
+        <table class="table_first">
+                <tr>
+                    <th style="th_1">Отчет по готовой продукции по спецификациям:</th>
+                </tr>
+            </thead>
+        <table> 
+        <table id="report-table" class="table_main">
+            <thead>
+                <tr>
+                    <th class="th_main">LOTID</th>
+                    <th class="th_main">Заказ</th>
+                    <th class="th_main">Модель</th>
+                    <th class="th_main">Артикул</th>
+                    <th class="th_main">Кол-во в заказе</th>
+                    <th class="th_main">Выпуск по заказу</th>
+                    <th class="th_main">Отгружено</th>
+                    <th class="th_main">Остаток ГП</th>
+                </tr>
+            </thead>
+            <tbody>       
+                {% for row in report_data %}
+                <tr>
+                    <td class="td_main">{% if row.LOTID is not None %}{{ row.LOTID }}{% else %} {% endif %}</td>
+                    <td class="td_main">{% if row.FULL_LOTCODE is not None %}{{ row.FULL_LOTCODE }}{% else %} {% endif %}</td>
+                    <td class="td_main">{% if row.MODEL_NAME is not None %}{{ row.MODEL_NAME }}{% else %} {% endif %}</td>
+                    <td class="td_main">{% if row.ARTICLE is not None %}{{ row.ARTICLE }}{% else %} {% endif %}</td>
+                    <td class="td_main">{% if row.LOT_SIZE is not None %}{{ row.LOT_SIZE }}{% else %} {% endif %}</td>
+                    <td class="td_main">{% if row.RELEASE_BY_ORDER is not None %}{{ row.RELEASE_BY_ORDER }}{% else %} {% endif %}</td>
+                    <td class="td_main">{% if row.LOT_SHIPPED is not None %}{{ row.LOT_SHIPPED }}{% else %} {% endif %}</td>
+                    <td class="td_main">{% if row.BALANCE_OF_GP is not None %}{{ row.BALANCE_OF_GP }}{% else %} {% endif %}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+</body>
+
+</html>
+

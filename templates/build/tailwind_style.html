@@ -1,0 +1,71 @@
+ {% load static %}
+
+<script>
+  tailwind.config = {
+    plugins: ["daisyui"],
+  };
+</script>
+
+<style type="text/tailwindcss">
+  /* @tailwind base;
+    @tailwind components;
+    @tailwind utilities;
+
+    @font-face {
+        font-family: 'Lato';
+        src: url( "{% static 'fonts/Lato-Medium.ttf' %}" ) format('truetype');
+    } */
+    .background {
+      @apply bg-white;
+    }
+    .lot-container {
+      @apply mb-8 bg-gray-100 w-full rounded-lg;
+    }
+  
+    .lot-header {
+      @apply font-bold mb-4;
+    }
+  
+    .step-table {
+      @apply w-full bg-white;
+    }
+  
+    .step-name {
+      @apply font-bold mb-2;
+    }
+    .table-container {
+        @apply flex;
+    }
+
+    .main-table {
+        @apply p-0 w-full  border-gray-300;
+    }
+
+    .main-table th,
+    .main-table td {
+        @apply  border border-gray-400  ;
+    }
+
+    .lot-info {
+        @apply p-0 flex flex-col font-bold mb-5;
+    }
+
+    .step-table {
+        @apply p-0 w-full mb-10;
+    }
+
+    .step-table th,
+    .step-table td {
+        @apply p-0 text-left;
+    }
+    
+    .fas_card_th {
+      @apply font-bold px-2 py-1 bg-gray-200 border-2 border-gray-300 
+    } 
+    .fas_card_td {
+      @apply px-2 py-1 border-2 border-gray-300 
+    } 
+  
+   
+    
+</style> 
