@@ -2,52 +2,99 @@ from LOGIC.query_config import query_execute_decorator
 
 
 #SELECT-запрос для получение всех данных
+# @query_execute_decorator(fetchall=True)
+# def get_contract_info(start_date: str, end_date: str, lotid=0) -> str:
+#     lot_where = ""
+#     if lotid != 0 and lotid != "":
+#         lot_where = f"WHERE LOTID = {lotid}"
+#     return f"""
+#        WITH CONTRACT AS (
+#         SELECT 
+#             COALESCE(co.PCBID, co.SNID, 'Default Value') AS 'INDEX_ID',
+#             co.LOTID AS 'LOTID',
+#             fl.LineID AS 'LINE_ID',
+#             co.StepID AS 'STEP_ID',
+#             cl.FullLOTCode AS 'TITLE',
+#             css.StepName AS 'STEP_NAME',
+#             css.Description AS 'DESCR',
+#             cl.StepSequence AS 'STEPS_SEQ',
+#             fo.Objective AS 'OBJECTIVE',
+#             COUNT(CASE WHEN ctr.[Result] = 'Pass' THEN 1 END) AS 'PASS',
+#             COUNT(CASE WHEN ctr.[Result] = 'Fail' THEN 1 END) AS 'FAIL',
+#             COUNT(CASE WHEN ctr.[Result] <> 'Fail' AND ctr.[Result] <> 'Pass' THEN 1 END) AS 'OTHER',
+#             ROUND(CAST(SUM(CASE WHEN ctr.[Result] = 'Pass' THEN 1 ELSE 0 END) AS DECIMAL(10,2)) * 100 / COUNT(co.TestResultID), 2) AS 'FPY',
+#             fl.LineName AS 'LINE_NAME',
+#             COUNT(ctr.[Result]) AS 'COUNT_RESULT',
+#             co.StepDate AS 'STEP_DATE'
+#         FROM FAS.dbo.Ct_OperLog co
+#         LEFT JOIN FAS.dbo.FAS_Objective fo ON fo.LOTID = co.LOTID
+#         LEFT JOIN FAS.dbo.Ct_TestResult ctr ON ctr.ID = co.TestResultID
+#         LEFT JOIN FAS.dbo.Contract_LOT cl ON cl.ID = co.LOTID
+#         LEFT JOIN FAS.dbo.Ct_StepScan css ON css.ID = co.StepID
+#         LEFT JOIN FAS.dbo.FAS_Lines fl ON fl.LineID = co.LineID
+#         WHERE co.LOTID > 20000 AND co.LOTID IN (SELECT coc.LOTID FROM FAS.dbo.Ct_OperLog coc WHERE coc.LOTID > 20000 AND coc.StepDate BETWEEN '{start_date}' AND '{end_date}')
+#         GROUP BY co.StepID, fl.LineID, cl.FullLOTCode, co.LOTID, css.StepName, css.Description, fl.LineName, StepSequence, fo.Objective, co.StepDate, co.PCBID, co.SNID  
+#     ), ROW_NUM_TABLE AS (
+#         SELECT *, ROW_NUMBER() OVER (PARTITION BY co.INDEX_ID, co.STEP_ID ORDER BY co.STEP_DATE) AS 'DUBLICAT_NUM'
+#         FROM CONTRACT co
+#     ), GROUP_TABLE AS (
+#         SELECT LOTID, LINE_ID, STEP_ID, TITLE, STEP_NAME, DESCR, STEPS_SEQ, OBJECTIVE,
+#         SUM(PASS) AS 'PASS', SUM(FAIL) AS 'FAIL', SUM(OTHER) AS 'OTHER',  SUM(COUNT_RESULT) AS 'COUNT_RESULT', LINE_NAME
+#         FROM ROW_NUM_TABLE
+#         WHERE DUBLICAT_NUM = 1 AND STEP_DATE BETWEEN '2024-10-11 08:00:00.000' AND '2024-10-11 20:00:00.000'
+#         GROUP BY TITLE, LOTID, LINE_ID, STEP_ID,  STEP_NAME, DESCR, STEPS_SEQ, OTHER, LINE_NAME, OBJECTIVE
+#     )
+#     SELECT * FROM GROUP_TABLE
+#     {lot_where}
+#     """
 @query_execute_decorator(fetchall=True)
 def get_contract_info(start_date: str, end_date: str, lotid=0) -> str:
     lot_where = ""
     if lotid != 0 and lotid != "":
         lot_where = f"WHERE LOTID = {lotid}"
     return f"""
-       WITH CONTRACT AS (
-        SELECT 
-            COALESCE(co.PCBID, co.SNID, 'Default Value') AS 'INDEX_ID',
-            co.LOTID AS 'LOTID',
-            fl.LineID AS 'LINE_ID',
-            co.StepID AS 'STEP_ID',
-            cl.FullLOTCode AS 'TITLE',
-            css.StepName AS 'STEP_NAME',
-            css.Description AS 'DESCR',
-            cl.StepSequence AS 'STEPS_SEQ',
-            fo.Objective AS 'OBJECTIVE',
-            COUNT(CASE WHEN ctr.[Result] = 'Pass' THEN 1 END) AS 'PASS',
-            COUNT(CASE WHEN ctr.[Result] = 'Fail' THEN 1 END) AS 'FAIL',
-            COUNT(CASE WHEN ctr.[Result] <> 'Fail' AND ctr.[Result] <> 'Pass' THEN 1 END) AS 'OTHER',
-            ROUND(CAST(SUM(CASE WHEN ctr.[Result] = 'Pass' THEN 1 ELSE 0 END) AS DECIMAL(10,2)) * 100 / COUNT(co.TestResultID), 2) AS 'FPY',
-            fl.LineName AS 'LINE_NAME',
-            COUNT(ctr.[Result]) AS 'COUNT_RESULT',
-            co.StepDate AS 'STEP_DATE'
-        FROM FAS.dbo.Ct_OperLog co
-        LEFT JOIN FAS.dbo.FAS_Objective fo ON fo.LOTID = co.LOTID
-        LEFT JOIN FAS.dbo.Ct_TestResult ctr ON ctr.ID = co.TestResultID
-        LEFT JOIN FAS.dbo.Contract_LOT cl ON cl.ID = co.LOTID
-        LEFT JOIN FAS.dbo.Ct_StepScan css ON css.ID = co.StepID
-        LEFT JOIN FAS.dbo.FAS_Lines fl ON fl.LineID = co.LineID
-        WHERE co.LOTID > 20000 AND co.LOTID IN (SELECT coc.LOTID FROM FAS.dbo.Ct_OperLog coc WHERE coc.LOTID > 20000 AND coc.StepDate BETWEEN '{start_date}' AND '{end_date}')
-        GROUP BY co.StepID, fl.LineID, cl.FullLOTCode, co.LOTID, css.StepName, css.Description, fl.LineName, StepSequence, fo.Objective, co.StepDate, co.PCBID, co.SNID  
-    ), ROW_NUM_TABLE AS (
-        SELECT *, ROW_NUMBER() OVER (PARTITION BY co.INDEX_ID, co.STEP_ID ORDER BY co.STEP_DATE) AS 'DUBLICAT_NUM'
-        FROM CONTRACT co
-    ), GROUP_TABLE AS (
-        SELECT LOTID, LINE_ID, STEP_ID, TITLE, STEP_NAME, DESCR, STEPS_SEQ, OBJECTIVE,
-        SUM(PASS) AS 'PASS', SUM(FAIL) AS 'FAIL', SUM(OTHER) AS 'OTHER',  SUM(COUNT_RESULT) AS 'COUNT_RESULT', LINE_NAME
-        FROM ROW_NUM_TABLE
-        WHERE DUBLICAT_NUM = 1 AND STEP_DATE BETWEEN '2024-10-11 08:00:00.000' AND '2024-10-11 20:00:00.000'
-        GROUP BY TITLE, LOTID, LINE_ID, STEP_ID,  STEP_NAME, DESCR, STEPS_SEQ, OTHER, LINE_NAME, OBJECTIVE
-    )
-    SELECT * FROM GROUP_TABLE
-    {lot_where}
-    """
-    
+WITH CONTRACT AS (
+    SELECT 
+        COALESCE(co.PCBID, co.SNID, 'Default Value') AS 'INDEX_ID',
+        co.LOTID AS 'LOTID',
+        fl.LineID AS 'LINE_ID',
+        co.StepID AS 'STEP_ID',
+        cl.FullLOTCode AS 'TITLE',
+        css.StepName AS 'STEP_NAME',
+        css.Description AS 'DESCR',
+        cl.StepSequence AS 'STEPS_SEQ',
+        fo.Objective AS 'OBJECTIVE',  -- Add the Objective column here
+        COUNT(CASE WHEN ctr.[Result] = 'Pass' THEN 1 END) AS 'PASS',
+        COUNT(CASE WHEN ctr.[Result] = 'Fail' THEN 1 END) AS 'FAIL',
+        COUNT(CASE WHEN ctr.[Result] <> 'Fail' AND ctr.[Result] <> 'Pass' THEN 1 END) AS 'OTHER',
+        ROUND(CAST(SUM(CASE WHEN ctr.[Result] = 'Pass' THEN 1 ELSE 0 END) AS DECIMAL(10,2)) * 100 / COUNT(co.TestResultID), 2) AS 'FPY',
+        fl.LineName AS 'LINE_NAME',
+        COUNT(ctr.[Result]) AS 'COUNT_RESULT',
+        co.StepDate AS 'STEP_DATE'
+    FROM FAS.dbo.Ct_OperLog co
+    LEFT JOIN FAS.dbo.Ct_TestResult ctr ON ctr.ID = co.TestResultID
+    LEFT JOIN FAS.dbo.Contract_LOT cl ON cl.ID = co.LOTID
+    LEFT JOIN FAS.dbo.Ct_StepScan css ON css.ID = co.StepID
+    LEFT JOIN FAS.dbo.FAS_Lines fl ON fl.LineID = co.LineID
+    LEFT JOIN FAS.dbo.FAS_Objective fo ON fo.LOTID = co.LOTID  --  Objective 
+    WHERE co.LOTID > 20000 AND co.LOTID IN (SELECT coc.LOTID FROM FAS.dbo.Ct_OperLog coc WHERE coc.LOTID > 20000 AND coc.StepDate BETWEEN '{start_date}' AND '{end_date}')
+    GROUP BY co.StepID, fl.LineID, cl.FullLOTCode, co.LOTID, css.StepName, css.Description, fl.LineName, StepSequence, fo.Objective, co.StepDate, co.PCBID, co.SNID  
+), ROW_NUM_TABLE AS (
+    SELECT *, ROW_NUMBER() OVER (PARTITION BY co.INDEX_ID, co.STEP_ID ORDER BY co.STEP_DATE) AS 'DUBLICAT_NUM'
+    FROM CONTRACT co
+), GROUP_TABLE AS (
+  SELECT LOTID, LINE_ID, STEP_ID, TITLE, STEP_NAME, DESCR, STEPS_SEQ, 
+      MAX(OBJECTIVE) AS 'OBJECTIVE', -- Используйте агрегатную функцию
+      SUM(PASS) AS 'PASS', SUM(FAIL) AS 'FAIL', SUM(OTHER) AS 'OTHER', 
+      SUM(COUNT_RESULT) AS 'COUNT_RESULT', LINE_NAME
+  FROM ROW_NUM_TABLE
+  WHERE DUBLICAT_NUM = 1 AND STEP_DATE BETWEEN '{start_date}' AND '{end_date}'
+  GROUP BY TITLE, LOTID, LINE_ID, STEP_ID, STEP_NAME, DESCR, STEPS_SEQ, 
+       OTHER, LINE_NAME -- Не добавляйте OBJECTIVE в GROUP BY
+)
+SELECT * FROM GROUP_TABLE
+{lot_where}
+    """    
     
 #SELECT-запрос для получение ошибок
 @query_execute_decorator(fetchall=True)

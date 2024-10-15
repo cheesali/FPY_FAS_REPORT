@@ -61,18 +61,28 @@
                 <div class="justify-start items-center text-center"> 
                   <span class="font-bold text-lg">
                     {{ lot.TITLE }} 
-                    <span class="text-end font-normal rounded-full bg-white border-2">
+                    {% if lot.GENERAL_FPY >= lot.OBJECTIVE %}
+                    <span class="text-end font-normal rounded-full bg-green-300 border-2">
                       {{ lot.GENERAL_FPY }}%
+                    </span>
+                    {% elif lot.GENERAL_FPY < lot.OBJECTIVE %}
+                    <span class="text-end font-normal rounded-full bg-red-300 border-2">
+                      {{ lot.GENERAL_FPY }}%
+                    </span>
+                    {% else %}
+                    <span class="text-end font-normal rounded-full bg-red-300 border-2">
+                      {{ lot.GENERAL_FPY }}%
+                    {% endif %}
                     </span>
                     {% if lot.OBJECTIVE %}
                     <span class="text-end font-normal rounded-full bg-white border-2">
-                      Цель {{ lot.OBJECTIVE }}%
+                      Цель: {{ lot.OBJECTIVE }}%
                       {% else %}
                       <span>Цель: -</span>
                       <span class="lot_lotid">LOTID: {{ lot.LOTID }}</span>
                       {% endif %}
                   </span>
-                                  </div>
+                </div>
                 <span class="ml-4 text-xs font-normal text-end">LOTID: {{ lot.LOTID }}</span>
               </div>
             </th>

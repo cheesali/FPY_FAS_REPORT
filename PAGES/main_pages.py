@@ -203,7 +203,7 @@ def get_fas_card(request: HttpRequest) -> HttpResponse:
   )
 
 def send_email_report(all_info, errors_info, dublicats_info, start_date_str, end_date_str):
-  try:
+  # try:
     # Формируем контекст для рендеринга шаблона письма
     email_context = {
       "all_info": all_info,
@@ -226,12 +226,12 @@ def send_email_report(all_info, errors_info, dublicats_info, start_date_str, end
     email.content_subtype = "html"
     email.send()
     print("Email успешно отправлен!")
-  except Exception as e:
-    print(f"Ошибка при отправке email: {str(e)}")
+  # except Exception as e:
+    # print(f"Ошибка при отправке email: {str(e)}")
 
 # Функция для планирования отправки email
 def schedule_email_reports():
-  hours = ["00:00", "02:00", "04:00", "06:00", "08:00", "13:26", "11:38", "11:37", "16:00", "18:00", "20:00", "22:00"]
+  hours = ["00:00", "02:00", "04:00", "06:00", "09:59", "08:52", "08:53", "11:37", "16:00", "18:00", "20:00", "22:00"]
   for hour in hours:
     schedule.every().day.at(hour).do(send_email_report_task)
 
@@ -247,7 +247,7 @@ def send_email_report_task():
 def run_scheduler():
   while True:
     schedule.run_pending()
-    time.sleep(1)
+    time.sleep(60)
 
 # Инициализация планировщика
 schedule_email_reports()

@@ -1,295 +1,330 @@
 <!DOCTYPE html>
 <html>
-<head>
-  <title>FAS отчет</title>
-  <style>
-    .main-screen {
-      height: 700px;
-      overflow-y: auto;
-    }
-    .main-text-bold {
-      font-weight: 700;
-    }
-    .main-margin {
-      margin-top: 1rem;
-      margin-bottom: 1rem;
-    }
-    .main-inputs {
-      border-radius: 0.5rem;
-      border: 1px solid #bcbcbc;
-      font-size: 16px;
-    }
-    .main-button {
-      border-radius: 0.5rem;
-      border: 1px solid #bcbcbc;
-      font-size: 16px;
-    }
-    .main-button:hover {
-      background-color: #dfdfdf;
-    }
-    .main-card {
-      border: 2px solid #bcbcbc;
-      border-radius: 0.375rem;
-      padding: 0px;
-      margin-bottom: 0.5rem;
-      border-collapse: collapse;
-    }
-    .main-table, .main-table-left {
-      table-layout: auto;
-      width: 100%;
-      border-collapse: collapse;
-    }
-    .main-thead {
-      background-color: #c7c7c7;
-      border: 2px solid #bcbcbc;
-    }
-    .main-th {
-      border: 2px solid #bcbcbc;
-      font-weight: 700;
-      font-size: 1.125rem;
-      line-height: 1.75rem;
-      padding: 0.5rem;
-      text-align: left;
-    }
-    .main-tr {
-      width: 100%;
-    }
-    .fas-card-th-10 {
-      font-weight: 700;
-      padding: 0.5rem;
-      background-color: #dfdfdf;
-      border: 2px solid #bcbcbc;
-      width: 10%;
-    }
-    .fas-card-th-15 {
-      font-weight: 700;
-      padding: 0.5rem;
-      background-color: #dfdfdf;
-      border: 2px solid #bcbcbc;
-      width: 15%;
-    }
-    .main-tbody {
-      border-top: 1px solid #E5E7EB;
-    }
-    .fas-card-td {
-      padding: 0.5rem;
-      border: 2px solid #bcbcbc;
-      background-color: #f8f8f8;
-      align-items: center;
-      text-align: center; 
-
-    }
-    .td-errors {
-      padding: 0px;
-      border: 2px solid #bcbcbc;
-      background-color: #f8f8f8;
-      text-align: center; 
-    }
-    .fas-card-td-errors {
-      padding: 0.5rem;
-      background-color: #f8f8f8;
-      text-align: center; 
-    }
-    .td-errors-bottom {
-      border-bottom: 2px solid #E5E7EB;
-    }
-    .fas-card-td-dubl-right {
-      padding: 0.5rem;
-      background-color: #f8f8f8;
-      width: 5%;
-    }
-    .fas-card-td-dubl-left {
-      padding: 0.5rem;
-      background-color: #f8f8f8;
-    }
-    .fas-card-title {
-      text-decoration: underline;
-      font: 1.2rem;
-    }
-    .lot-info {
-      gap: 2.5rem; 
-
-    }
-    .lot_title {
-      font-size: 1.2em;
-      width: 50%;
-      font-weight: normal;
-
-    }
-    .lot_general_fpy {
-      font-size: 1.2em;
-      float: right;
-    }
-    .lot_lotid {
-      font-size: 0.8em;
-      text-transform: lowercase;
-      float: right;
-      margin-right: 15rem;
-
-    }
-  </style>
-</head>
-<body>
-  <div class="main-screen">
-    {% comment %} <a href="http://127.0.0.1:8000/get_fas_card/"> {% endcomment %}
-      <button class="fas-card-title">
-        Перейти на главную страницу
-      </button>
-    </a>
-    {% for lot in all_info %}
-      <div class="main-card">
-        <table class="main-table-left">
-          <thead class="main-thead">
-            <tr>
-              <th colspan="8" class="">
-                <div class="lot-info">
-                  <span class="lot_title">{{ lot.TITLE }}</span>
-                  <span class="lot_general_fpy">{{ lot.GENERAL_FPY }}%</span>
-                  {% if lot.OBJECTIVE %}
-                  <span>Цель: {{ lot.OBJECTIVE }}%</span>
-                  {% else %}
-                  <span>Цель: -</span>
-                  <span class="lot_lotid">LOTID: {{ lot.LOTID }}</span>
-                  {% endif %}
-                </div>
-              </th>
-            </tr>
-            <tr class="main-tr">
-              <th class="fas-card-th-10">Станция</th>
-              <th class="fas-card-th-10">Линия</th>
-              <th class="fas-card-th-10">PASS</th>
-              <th class="fas-card-th-10">FAIL</th>
-              <th class="fas-card-th-10">Количество</th>
-              <th class="fas-card-th-15">Код|Ошибка|Количество</th>
-              <th class="fas-card-th-10">Дубликаты PASS|FAIL</th>
-              <th class="fas-card-th-10">FPY</th>
-            </tr>
-          </thead>
-          <tbody class="main-tbody">
-            <!-- STEPS -->
-            {% for step in lot.STEPS %}
-              {% for line_info in step.LINES_INFO %}
-                <tr>
-                  <td class="fas-card-td">{{ step.STEP_NAME }}</td>
-                  <td class="fas-card-td">
-                    {% if line_info.LINE_NAME %}
-                      {{ line_info.LINE_NAME }}
-                    {% else %}
-                      -
-                    {% endif %}
-                  </td>
-                  <td class="fas-card-td">{{ line_info.PASS }}</td>
-                  <td class="fas-card-td">{{ line_info.FAIL }}</td>
-                  <td class="fas-card-td">{{ line_info.COUNT_RESULT }}</td>
-                  <td class="td-errors">
-                    <table class="main-table-left">
-                      <tbody>
-                        {% for error in errors_info %}
-                          {% for error_step in error.STEPS %}
-                            {% for error_line in error_step.LINES_INFO %}
-                              {% if error.LOTID == lot.LOTID and error_step.STEP_ID == step.STEP_ID and error_line.LINE_ID == line_info.LINE_ID %}
-                                {% if error_line.COUNT_FAIL > 0 %}
-                                  <tr class="td-errors-bottom">
-                                    <td class="fas-card-td-errors">{{ error_line.ERROR_CODE }}</td>
-                                    <td class="fas-card-td-errors">{{ error_line.FAIL_DESCR }}</td>
-                                    <td class="fas-card-td-errors">{{ error_line.COUNT_FAIL }}</td>
+  <head>
+    <title>FAS отчет</title>
+    <style>
+      .main-screen {
+        height: 700px;
+        overflow-y: auto;
+      }
+      .main-text-bold {
+        font-weight: 700;
+      }
+      .main-margin {
+        margin-top: 1rem;
+        margin-bottom: 1rem;
+      }
+      .main-inputs {
+        border-radius: 0.5rem;
+        border: 1px solid #bcbcbc;
+        font-size: 16px;
+      }
+      .main-button {
+        border-radius: 0.5rem;
+        border: 1px solid #bcbcbc;
+        font-size: 16px;
+      }
+      .main-button:hover {
+        background-color: #dfdfdf;
+      }
+      .main-card {
+        border: 2px solid #bcbcbc;
+        border-radius: 0.375rem;
+        padding: 0px;
+        margin-bottom: 0.5rem;
+        border-collapse: collapse;
+      }
+      .main-table,
+      .main-table-left {
+        table-layout: auto;
+        width: 100%;
+        border-collapse: collapse;
+      }
+      .main-thead {
+        background-color: #c7c7c7;
+        border: 2px solid #bcbcbc;
+      }
+      .main-th {
+        border: 2px solid #bcbcbc;
+        font-weight: 700;
+        font-size: 1.125rem;
+        line-height: 1.75rem;
+        padding: 0.5rem;
+        text-align: left;
+      }
+      .main-tr {
+        width: 100%;
+      }
+      .fas-card-th-10 {
+        font-weight: 700;
+        padding: 0.5rem;
+        background-color: #dfdfdf;
+        border: 2px solid #bcbcbc;
+        width: 10%;
+      }
+      .fas-card-th-15 {
+        font-weight: 700;
+        padding: 0.5rem;
+        background-color: #dfdfdf;
+        border: 2px solid #bcbcbc;
+        width: 15%;
+      }
+      .main-tbody {
+        border-top: 1px solid #e5e7eb;
+      }
+      .fas-card-td {
+        padding: 0.5rem;
+        border: 2px solid #bcbcbc;
+        background-color: #f8f8f8;
+        align-items: center;
+        text-align: center;
+      }
+      .td-errors {
+        padding: 0px;
+        border: 2px solid #bcbcbc;
+        background-color: #f8f8f8;
+        text-align: center;
+      }
+      .fas-card-td-errors {
+        padding: 0.5rem;
+        background-color: #f8f8f8;
+        text-align: center;
+      }
+      .td-errors-bottom {
+        border-bottom: 2px solid #e5e7eb;
+      }
+      .fas-card-td-dubl-right {
+        padding: 0.5rem;
+        background-color: #f8f8f8;
+        width: 5%;
+      }
+      .fas-card-td-dubl-left {
+        padding: 0.5rem;
+        background-color: #f8f8f8;
+      }
+      .fas-card-title {
+        text-decoration: underline;
+        font: 1.2rem;
+      }
+      .lot-info {
+        gap: 2.5rem;
+      }
+      .lot_title {
+        font-size: 1.2em;
+        width: 50%;
+        font-weight: normal;
+      }
+      .lot_general_fpy {
+        font-size: 1.2em;
+        float: right;
+        color: black;
+      }
+      .lot_lotid {
+        font-size: 0.8em;
+        text-transform: lowercase;
+        float: right;
+        margin-right: 15rem;
+      }
+      .lot_general_fpy_green {
+        color: green; /* Green for FPY >= Goal */
+      }
+      
+      .lot_general_fpy_red {
+        color: red; /* Red for FPY < Goal */
+      }
+      .grid-container-3 {
+        display: grid;
+        grid-template-columns: repeat(3, 3fr);
+        grid-auto-rows: 100px;
+        text-align: center;
+        gap: 40px;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="main-screen">
+      <a href="http://192.168.178.99:18003/"><button class="fas-card-title">Перейти на главную страницу</button></a>
+      {% for lot in all_info %}
+        <div class="main-card">
+          <table class="main-table-left">
+            <thead class="main-thead">
+              <tr>
+                <th colspan="8" class="">
+                  <table class="grid-container-3">
+                    <tr>
+                      <td class="lot_title">{{ lot.TITLE }}</td>
+                      <td>
+                        {% if lot.GENERAL_FPY >= lot.OBJECTIVE %}
+                          <div class="lot_general_fpy_green">FPY: {{ lot.GENERAL_FPY }}%</div>
+                        {% elif lot.GENERAL_FPY < lot.OBJECTIVE %}
+                          <div class="lot_general_fpy_red">FPY: {{ lot.GENERAL_FPY }}%</div>
+                        {% else %}
+                          <div class="lot_general_fpy">FPY: {{ lot.GENERAL_FPY }}%</div>
+                        {% endif %}
+                      </td>
+                      <td>
+                        {% if lot.OBJECTIVE %}
+                          Цель: {{ lot.OBJECTIVE }}%
+                        {% else %}
+                          Цель: -
+                        {% endif %}
+                      </td>
+                      <td class="lot_lotid">LOTID: {{ lot.LOTID }}</td>
+                    </tr>
+                 
+                  </table>
+                </th>
+              </tr>
+              <tr class="main-tr">
+                <th class="fas-card-th-10">Станция</th>
+                <th class="fas-card-th-10">Линия</th>
+                <th class="fas-card-th-10">PASS</th>
+                <th class="fas-card-th-10">FAIL</th>
+                <th class="fas-card-th-10">Количество</th>
+                <th class="fas-card-th-15">Код|Ошибка|Количество</th>
+                <th class="fas-card-th-10">Дубликаты PASS|FAIL</th>
+                <th class="fas-card-th-10">FPY</th>
+              </tr>
+            </thead>
+            <tbody class="main-tbody">
+              <!-- STEPS -->
+              {% for step in lot.STEPS %}
+                {% for line_info in step.LINES_INFO %}
+                  <tr>
+                    <td class="fas-card-td">{{ step.STEP_NAME }}</td>
+                    <td class="fas-card-td">
+                      {% if line_info.LINE_NAME %}
+                        {{ line_info.LINE_NAME }}
+                      {% else %}
+                        -
+                      {% endif %}
+                    </td>
+                    <td class="fas-card-td">{{ line_info.PASS }}</td>
+                    <td class="fas-card-td">{{ line_info.FAIL }}</td>
+                    <td class="fas-card-td">{{ line_info.COUNT_RESULT }}</td>
+                    <td class="td-errors">
+                      <table class="main-table-left">
+                        <tbody>
+                          {% for error in errors_info %}
+                            {% for error_step in error.STEPS %}
+                              {% for error_line in error_step.LINES_INFO %}
+                                {% if error.LOTID == lot.LOTID and error_step.STEP_ID == step.STEP_ID and error_line.LINE_ID == line_info.LINE_ID %}
+                                  {% if error_line.COUNT_FAIL > 0 %}
+                                    <tr class="td-errors-bottom">
+                                      <td class="fas-card-td-errors">{{ error_line.ERROR_CODE }}</td>
+                                      <td class="fas-card-td-errors">{{ error_line.FAIL_DESCR }}</td>
+                                      <td class="fas-card-td-errors">{{ error_line.COUNT_FAIL }}</td>
+                                    </tr>
+                                  {% endif %}
+                                {% endif %}
+                              {% endfor %}
+                            {% endfor %}
+                          {% endfor %}
+                        </tbody>
+                      </table>
+                    </td>
+                    <td class="td-errors">
+                      <table class="">
+                        <tbody>
+                          {% if dublicats_info %}
+                            {% for dubl in dublicats_info %}
+                              {% if dubl.LOTID == lot.LOTID and dubl.STEP_ID == step.STEP_ID and dubl.LINE_ID == line_info.LINE_ID %}
+                                {% if dubl.PASS_DUBL > 0 %}
+                                  <tr class="">
+                                    <td class="fas-card-td-dubl-left">{{ dubl.PASS_DUBL }}</td>
+                                    <td class="fas-card-td-dubl-right">{{ dubl.FAIL_DUBL }}</td>
                                   </tr>
                                 {% endif %}
                               {% endif %}
                             {% endfor %}
-                          {% endfor %}
-                        {% endfor %}
-                      </tbody>
-                    </table>
-                  </td>
-                  <td class="td-errors">
-                    <table class="">
-                      <tbody>
-                        {% for dubl in dublicats_info %}
-                          {% if dubl.LOTID == lot.LOTID and dubl.STEP_ID == step.STEP_ID and dubl.LINE_ID == line_info.LINE_ID %}
-                            {% if dubl.PASS_DUBL > 0 %}
+                          {% else %}
                             <tr class="">
-                              <td class="fas-card-td-dubl-left">{{ dubl.PASS_DUBL }}</td>
-                              <td class="fas-card-td-dubl-right">{{ dubl.FAIL_DUBL }}</td>
+                              <td class="fas_card_td border-none">-</td>
+                              <td class="fas_card_td border-none text-right">-</td>
                             </tr>
                           {% endif %}
-                        {% endif %}
-                      {% endfor %}
-                    </tbody>
-                  </table>
-                </td>
-                {% if step.DESCR == 'FPY' %}
-                  <td class="fas-card-td">{{ line_info.FPY }}%</td>
-                {% else %}
-                  <td class="fas-card-td">-</td>
-                {% endif %}
-              </tr>
-            {% endfor %}
-          {% endfor %}
-          <!-- OTHER STEPS -->
-          {% for step in lot.OTHER_STEPS %}
-            {% for line_info in step.LINES_INFO %}
-              <tr>
-                <td class="fas-card-td">{{ step.STEP_NAME }}</td>
-                <td class="fas-card-td">
-                  {% if line_info.LINE_NAME %}
-                    {{ line_info.LINE_NAME }}
-                  {% else %}
-                    -
-                  {% endif %}
-                </td>
-                <td class="fas-card-td">{{ line_info.PASS }}</td>
-                <td class="fas-card-td">{{ line_info.FAIL }}</td>
-                <td class="fas-card-td">{{ line_info.COUNT }}</td>
-                <td class="fas-card-td">
-                  <table class="main-table-left">
-                    <tbody>
-                      {% for error in errors_info %}
-                        {% for error_step in error.STEPS %}
-                          {% for error_line in error_step.LINES_INFO %}
-                            {% if error.LOTID == lot.LOTID and error_step.STEP_ID == step.STEP_ID and error_line.LINE_ID == line_info.LINE_ID %}
-                              {% if error_line.COUNT_FAIL > 0 %}
-                                <tr class="td-errors-bottom">
-                                  <td class="fas-card-td-errors">{{ error.line.ERROR_CODE }}</td>
-                                  <td class="fas-card-td-errors">{{ error_line.FAIL_DESCR }}</td>
-                                  <td class="fas-card-td-errors">{{ error_line.COUNT_FAIL }}</td>
-                                </tr>
+                        </tbody>
+                      </table>
+                    </td>
+                    {% if step.DESCR == 'FPY' %}
+                      <td class="fas-card-td">{{ line_info.FPY }}%</td>
+                    {% else %}
+                      <td class="fas-card-td">-</td>
+                    {% endif %}
+                  </tr>
+                {% endfor %}
+              {% endfor %}
+              <!-- OTHER STEPS -->
+              {% for step in lot.OTHER_STEPS %}
+                {% for line_info in step.LINES_INFO %}
+                  <tr>
+                    <td class="fas-card-td">{{ step.STEP_NAME }}</td>
+                    <td class="fas-card-td">
+                      {% if line_info.LINE_NAME %}
+                        {{ line_info.LINE_NAME }}
+                      {% else %}
+                        -
+                      {% endif %}
+                    </td>
+                    <td class="fas-card-td">{{ line_info.PASS }}</td>
+                    <td class="fas-card-td">{{ line_info.FAIL }}</td>
+                    <td class="fas-card-td">{{ line_info.COUNT }}</td>
+                    <td class="fas-card-td">
+                      <table class="main-table-left">
+                        <tbody>
+                          {% for error in errors_info %}
+                            {% for error_step in error.STEPS %}
+                              {% for error_line in error_step.LINES_INFO %}
+                                {% if error.LOTID == lot.LOTID and error_step.STEP_ID == step.STEP_ID and error_line.LINE_ID == line_info.LINE_ID %}
+                                  {% if error_line.COUNT_FAIL > 0 %}
+                                    <tr class="td-errors-bottom">
+                                      <td class="fas-card-td-errors">{{ error.line.ERROR_CODE }}</td>
+                                      <td class="fas-card-td-errors">{{ error_line.FAIL_DESCR }}</td>
+                                      <td class="fas-card-td-errors">{{ error_line.COUNT_FAIL }}</td>
+                                    </tr>
+                                  {% endif %}
+                                {% endif %}
+                              {% endfor %}
+                            {% endfor %}
+                          {% endfor %}
+                        </tbody>
+                      </table>
+                    </td>
+                    <td class="td-errors">
+                      <table class="">
+                        <tbody>
+                          {% if dublicats_info %}
+                            {% for dubl in dublicats_info %}
+                              {% if dubl.LOTID == lot.LOTID and dubl.STEP_ID == step.STEP_ID and dubl.LINE_ID == line_info.LINE_ID %}
+                                {% if dubl.PASS_DUBL > 0 %}
+                                  <tr class="">
+                                    <td class="fas-card-td-dubl-left">{{ dubl.PASS_DUBL }}</td>
+                                    <td class="fas-card-td-dubl-right">{{ dubl.FAIL_DUBL }}</td>
+                                  </tr>
+                                {% endif %}
                               {% endif %}
-                            {% endif %}
-                          {% endfor %}
-                        {% endfor %}
-                      {% endfor %}
-                    </tbody>
-                  </table>
-                </td>
-                <td class="td-errors">
-                  <table class="">
-                    <tbody>
-                      {% for dubl in dublicats_info %}
-                        {% if dubl.LOTID == lot.LOTID and dubl.STEP_ID == step.STEP_ID and dubl.LINE_ID == line_info.LINE_ID %}
-                          {% if dubl.PASS_DUBL > 0 %}
+                            {% endfor %}
+                          {% else %}
                             <tr class="">
-                              <td class="fas-card-td-dubl-left">{{ dubl.PASS_DUBL }}</td>
-                              <td class="fas-card-td-dubl-right">{{ dubl.FAIL_DUBL }}</td>
+                              <td class="fas_card_td border-none">-</td>
+                              <td class="fas_card_td border-none text-right">-</td>
                             </tr>
                           {% endif %}
-                        {% endif %}
-                      {% endfor %}
-                    </tbody>
-                  </table>
-                </td>
-                {% if step.DESCR == 'FPY' %}
-                  <td class="fas-card-td">{{ line_info.FPY }}%</td>
-                {% else %}
-                  <td class="fas-card-td">-</td>
-                {% endif %}
-              </tr>
-            {% endfor %}
-          {% endfor %}
-        </tbody>
-      </table>
+                        </tbody>
+                      </table>
+                    </td>
+                    {% if step.DESCR == 'FPY' %}
+                      <td class="fas-card-td">{{ line_info.FPY }}%</td>
+                    {% else %}
+                      <td class="fas-card-td">-</td>
+                    {% endif %}
+                  </tr>
+                {% endfor %}
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      {% endfor %}
     </div>
-  {% endfor %}
-</div>
-</body>
+  </body>
 </html>
