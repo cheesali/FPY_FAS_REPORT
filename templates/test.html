@@ -1,0 +1,675 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+  <title>FAS отчет</title>
+  <style>
+    .main-screen {
+      height: 700px;
+      overflow-y: auto;
+    }
+
+    .main-text-bold {
+      font-weight: 700;
+    }
+
+    .main-margin {
+      margin-top: 1rem;
+      margin-bottom: 1rem;
+    }
+
+    .main-inputs {
+      border-radius: 0.5rem;
+      border: 1px solid #bcbcbc;
+      font-size: 16px;
+    }
+
+    .main-button {
+      border-radius: 0.5rem;
+      border: 1px solid #bcbcbc;
+      font-size: 16px;
+    }
+
+    .main-button:hover {
+      background-color: #dfdfdf;
+    }
+
+    .main-card {
+      border: 2px solid #bcbcbc;
+      border-radius: 0.375rem;
+      padding: 0px;
+      margin-bottom: 0.5rem;
+      border-collapse: collapse;
+    }
+
+    .main-table,
+    .main-table-left {
+      table-layout: auto;
+      width: 100%;
+      border-collapse: collapse;
+    }
+
+    .main-thead {
+      background-color: #c7c7c7;
+      border: 2px solid #bcbcbc;
+    }
+
+    .main-th {
+      border: 2px solid #bcbcbc;
+      font-weight: 700;
+      font-size: 1.125rem;
+      line-height: 1.75rem;
+      padding: 0.5rem;
+      text-align: left;
+    }
+
+    .main-tr {
+      width: 100%;
+    }
+
+    .fas-card-th-10 {
+      font-weight: 700;
+      padding: 0.5rem;
+      background-color: #dfdfdf;
+      border: 2px solid #bcbcbc;
+      width: 10%;
+    }
+
+    .fas-card-th-15 {
+      font-weight: 700;
+      padding: 0.5rem;
+      background-color: #dfdfdf;
+      border: 2px solid #bcbcbc;
+      width: 15%;
+    }
+
+    .main-tbody {
+      border-top: 1px solid #E5E7EB;
+    }
+
+    .fas-card-td {
+      padding: 0.5rem;
+      border: 2px solid #bcbcbc;
+      background-color: #f8f8f8;
+      align-items: center;
+      text-align: center;
+
+    }
+
+    .td-errors {
+      padding: 0px;
+      border: 2px solid #bcbcbc;
+      background-color: #f8f8f8;
+      text-align: center;
+    }
+
+    .fas-card-td-errors {
+      padding: 0.5rem;
+      background-color: #f8f8f8;
+      text-align: center;
+    }
+
+    .td-errors-bottom {
+      border-bottom: 2px solid #E5E7EB;
+    }
+
+    .fas-card-td-dubl-right {
+      padding: 0.5rem;
+      background-color: #f8f8f8;
+      width: 5%;
+    }
+
+    .fas-card-td-dubl-left {
+      padding: 0.5rem;
+      background-color: #f8f8f8;
+    }
+
+    .fas-card-title {
+      text-decoration: underline;
+      font: 1.2rem;
+    }
+
+    .lot-info {
+      gap: 2.5rem;
+
+    }
+
+    .lot_title {
+      font-size: 1.2em;
+      width: 50%;
+      font-weight: normal;
+
+    }
+
+    .lot_general_fpy {
+      font-size: 1.2em;
+      float: right;
+      color: black;
+    }
+
+    .lot_lotid {
+      font-size: 0.8em;
+      text-transform: lowercase;
+      float: right;
+      margin-right: 15rem;
+    }
+
+    .lot_general_fpy_green {
+      color: green;
+      /* Green for FPY >= Goal */
+    }
+
+    .lot_general_fpy_red {
+      color: red;
+      /* Red for FPY < Goal */
+    }
+
+    .grid-container-3 {
+      display: grid;
+      grid-template-columns: repeat(4, 3fr);
+      grid-auto-rows: 200px;
+      text-align: center;
+    }
+  </style>
+</head>
+
+<body>
+  <div class="main-screen">
+    <a href="http://192.168.178.99:18003/">
+      <button class="fas-card-title">
+        Перейти на главную страницу
+      </button>
+    </a>
+
+    <div class="main-card">
+      
+      <div class="grid-container-3">
+        <div class="lot_title">SP_12_Fx_687281.070-04</div>
+        <div class="lot_general_fpy">FPY:-% Цель: 97,75%</div>
+        <div class="lot_lotid">LOTID: 20595</div>
+        <div class="lot_lotid">LOTID: 20595</div>
+      </div>
+
+      <table class="main-table-left">
+        <thead class="main-thead">
+          <tr>
+            <th colspan="8" class="">
+            </th>
+          </tr>
+          <tr class="main-tr">
+            <th class="fas-card-th-10">Станция</th>
+            <th class="fas-card-th-10">Линия</th>
+            <th class="fas-card-th-10">PASS</th>
+            <th class="fas-card-th-10">FAIL</th>
+            <th class="fas-card-th-10">Количество</th>
+            <th class="fas-card-th-15">Код|Ошибка|Количество</th>
+            <th class="fas-card-th-10">Дубликаты PASS|FAIL</th>
+            <th class="fas-card-th-10">FPY</th>
+          </tr>
+        </thead>
+        <tbody class="main-tbody">
+          <!-- STEPS -->
+
+
+          <tr>
+            <td class="fas-card-td">THT Start</td>
+            <td class="fas-card-td">
+
+              THT
+
+            </td>
+            <td class="fas-card-td">540</td>
+            <td class="fas-card-td">0</td>
+            <td class="fas-card-td">540</td>
+            <td class="td-errors">
+              <table class="main-table-left">
+                <tbody>
+
+
+
+
+
+
+
+                </tbody>
+              </table>
+            </td>
+            <td class="td-errors">
+              <table class="">
+                <tbody>
+
+                  <tr class="">
+                    <td class="fas_card_td border-none">-</td>
+                    <td class="fas_card_td border-none text-right">-</td>
+                  </tr>
+
+                </tbody>
+              </table>
+            </td>
+
+            <td class="fas-card-td">-</td>
+
+          </tr>
+
+
+
+          <tr>
+            <td class="fas-card-td">Станция упаковки</td>
+            <td class="fas-card-td">
+
+              THT Line 6
+
+            </td>
+            <td class="fas-card-td">187</td>
+            <td class="fas-card-td">0</td>
+            <td class="fas-card-td">187</td>
+            <td class="td-errors">
+              <table class="main-table-left">
+                <tbody>
+
+
+
+
+
+
+
+                </tbody>
+              </table>
+            </td>
+            <td class="td-errors">
+              <table class="">
+                <tbody>
+
+                  <tr class="">
+                    <td class="fas_card_td border-none">-</td>
+                    <td class="fas_card_td border-none text-right">-</td>
+                  </tr>
+
+                </tbody>
+              </table>
+            </td>
+
+            <td class="fas-card-td">-</td>
+
+          </tr>
+
+
+          <!-- OTHER STEPS -->
+
+
+          <tr>
+            <td class="fas-card-td">ОТК - выборочный контроль ГП (усиленный)</td>
+            <td class="fas-card-td">
+
+              OTK
+
+            </td>
+            <td class="fas-card-td">24</td>
+            <td class="fas-card-td">0</td>
+            <td class="fas-card-td"></td>
+            <td class="fas-card-td">
+              <table class="main-table-left">
+                <tbody>
+
+
+
+
+
+
+
+                </tbody>
+              </table>
+            </td>
+            <td class="td-errors">
+              <table class="">
+                <tbody>
+
+                  <tr class="">
+                    <td class="fas_card_td border-none">-</td>
+                    <td class="fas_card_td border-none text-right">-</td>
+                  </tr>
+
+                </tbody>
+              </table>
+            </td>
+
+            <td class="fas-card-td">-</td>
+
+          </tr>
+
+
+        </tbody>
+      </table>
+    </div>
+
+    <div class="main-card">
+      <table class="main-table-left">
+        <thead class="main-thead">
+          <tr>
+            <th colspan="8" class="">
+              <div class="grid-container-3">
+
+                <div class="lot_title">SP_92_Dp</div>
+
+                <div class="lot_general_fpy">FPY:</div>-%
+
+
+                <div>Цель: -</div>
+
+                <div class="lot_lotid" style="margin-left: 1rem;">LOTID: 20598</div>
+              </div>
+            </th>
+          </tr>
+          <tr class="main-tr">
+            <th class="fas-card-th-10">Станция</th>
+            <th class="fas-card-th-10">Линия</th>
+            <th class="fas-card-th-10">PASS</th>
+            <th class="fas-card-th-10">FAIL</th>
+            <th class="fas-card-th-10">Количество</th>
+            <th class="fas-card-th-15">Код|Ошибка|Количество</th>
+            <th class="fas-card-th-10">Дубликаты PASS|FAIL</th>
+            <th class="fas-card-th-10">FPY</th>
+          </tr>
+        </thead>
+        <tbody class="main-tbody">
+          <!-- STEPS -->
+
+
+          <tr>
+            <td class="fas-card-td">THT Start</td>
+            <td class="fas-card-td">
+
+              THT Line 3
+
+            </td>
+            <td class="fas-card-td">4</td>
+            <td class="fas-card-td">0</td>
+            <td class="fas-card-td">4</td>
+            <td class="td-errors">
+              <table class="main-table-left">
+                <tbody>
+
+
+
+
+
+
+
+                </tbody>
+              </table>
+            </td>
+            <td class="td-errors">
+              <table class="">
+                <tbody>
+
+                  <tr class="">
+                    <td class="fas_card_td border-none">-</td>
+                    <td class="fas_card_td border-none text-right">-</td>
+                  </tr>
+
+                </tbody>
+              </table>
+            </td>
+
+            <td class="fas-card-td">-</td>
+
+          </tr>
+
+
+          <!-- OTHER STEPS -->
+
+        </tbody>
+      </table>
+    </div>
+
+    <div class="main-card">
+      <table class="main-table-left">
+        <thead class="main-thead">
+          <tr>
+            <th colspan="8" class="">
+              <div class="grid-container-3">
+
+                <div class="lot_title">SP_93_Dp</div>
+
+                <div class="lot_general_fpy">FPY:</div>99,01%
+
+
+                <div>Цель: -</div>
+
+                <div class="lot_lotid" style="margin-left: 1rem;">LOTID: 20599</div>
+              </div>
+            </th>
+          </tr>
+          <tr class="main-tr">
+            <th class="fas-card-th-10">Станция</th>
+            <th class="fas-card-th-10">Линия</th>
+            <th class="fas-card-th-10">PASS</th>
+            <th class="fas-card-th-10">FAIL</th>
+            <th class="fas-card-th-10">Количество</th>
+            <th class="fas-card-th-15">Код|Ошибка|Количество</th>
+            <th class="fas-card-th-10">Дубликаты PASS|FAIL</th>
+            <th class="fas-card-th-10">FPY</th>
+          </tr>
+        </thead>
+        <tbody class="main-tbody">
+          <!-- STEPS -->
+
+
+          <tr>
+            <td class="fas-card-td">THT Start</td>
+            <td class="fas-card-td">
+
+              THT Line 3
+
+            </td>
+            <td class="fas-card-td">142</td>
+            <td class="fas-card-td">0</td>
+            <td class="fas-card-td">142</td>
+            <td class="td-errors">
+              <table class="main-table-left">
+                <tbody>
+
+
+
+
+
+
+
+                </tbody>
+              </table>
+            </td>
+            <td class="td-errors">
+              <table class="">
+                <tbody>
+
+                  <tr class="">
+                    <td class="fas_card_td border-none">-</td>
+                    <td class="fas_card_td border-none text-right">-</td>
+                  </tr>
+
+                </tbody>
+              </table>
+            </td>
+
+            <td class="fas-card-td">-</td>
+
+          </tr>
+
+
+
+          <tr>
+            <td class="fas-card-td">Тест Мат. плат</td>
+            <td class="fas-card-td">
+
+              FAS Line 3
+
+            </td>
+            <td class="fas-card-td">100</td>
+            <td class="fas-card-td">1</td>
+            <td class="fas-card-td">101</td>
+            <td class="td-errors">
+              <table class="main-table-left">
+                <tbody>
+
+
+
+
+
+                  <tr class="td-errors-bottom">
+                    <td class="fas-card-td-errors">DS</td>
+                    <td class="fas-card-td-errors">Тест D-Sub</td>
+                    <td class="fas-card-td-errors">1</td>
+                  </tr>
+
+
+
+
+
+                </tbody>
+              </table>
+            </td>
+            <td class="td-errors">
+              <table class="">
+                <tbody>
+
+                  <tr class="">
+                    <td class="fas_card_td border-none">-</td>
+                    <td class="fas_card_td border-none text-right">-</td>
+                  </tr>
+
+                </tbody>
+              </table>
+            </td>
+
+            <td class="fas-card-td">99,01%</td>
+
+          </tr>
+
+
+
+          <tr>
+            <td class="fas-card-td">Станция упаковки</td>
+            <td class="fas-card-td">
+
+              FAS Line 3
+
+            </td>
+            <td class="fas-card-td">100</td>
+            <td class="fas-card-td">0</td>
+            <td class="fas-card-td">100</td>
+            <td class="td-errors">
+              <table class="main-table-left">
+                <tbody>
+
+
+
+
+
+
+
+                </tbody>
+              </table>
+            </td>
+            <td class="td-errors">
+              <table class="">
+                <tbody>
+
+                  <tr class="">
+                    <td class="fas_card_td border-none">-</td>
+                    <td class="fas_card_td border-none text-right">-</td>
+                  </tr>
+
+                </tbody>
+              </table>
+            </td>
+
+            <td class="fas-card-td">-</td>
+
+          </tr>
+
+
+          <!-- OTHER STEPS -->
+
+        </tbody>
+      </table>
+    </div>
+
+    <div class="main-card">
+      <table class="main-table-left">
+        <thead class="main-thead">
+          <tr>
+            <th colspan="8" class="">
+              <div class="grid-container-3">
+
+                <div class="lot_title">sp53_Dp_Плата системная DPA156 ДАЦН.469535.034</div>
+
+                <div class="lot_general_fpy">FPY:</div>-%
+
+
+                <div>Цель: 93,2%</div>
+
+                <div class="lot_lotid" style="margin-left: 1rem;">LOTID: 20263</div>
+              </div>
+            </th>
+          </tr>
+          <tr class="main-tr">
+            <th class="fas-card-th-10">Станция</th>
+            <th class="fas-card-th-10">Линия</th>
+            <th class="fas-card-th-10">PASS</th>
+            <th class="fas-card-th-10">FAIL</th>
+            <th class="fas-card-th-10">Количество</th>
+            <th class="fas-card-th-15">Код|Ошибка|Количество</th>
+            <th class="fas-card-th-10">Дубликаты PASS|FAIL</th>
+            <th class="fas-card-th-10">FPY</th>
+          </tr>
+        </thead>
+        <tbody class="main-tbody">
+          <!-- STEPS -->
+
+          <!-- OTHER STEPS -->
+
+
+          <tr>
+            <td class="fas-card-td">ОТК - после ремонта</td>
+            <td class="fas-card-td">
+
+              -
+
+            </td>
+            <td class="fas-card-td">1</td>
+            <td class="fas-card-td">0</td>
+            <td class="fas-card-td"></td>
+            <td class="fas-card-td">
+              <table class="main-table-left">
+                <tbody>
+
+                </tbody>
+              </table>
+            </td>
+            <td class="td-errors">
+              <table class="">
+                <tbody>
+
+                  <tr class="">
+                    <td class="fas_card_td border-none">-</td>
+                    <td class="fas_card_td border-none text-right">-</td>
+                  </tr>
+
+                </tbody>
+              </table>
+            </td>
+
+            <td class="fas-card-td">-</td>
+
+          </tr>
+
+
+        </tbody>
+      </table>
+    </div>
+
+  </div>
+</body>
+
+</html>
